@@ -12,6 +12,7 @@ NAME=$1
 
 ARCH=$(uname -m)
 VERSION=$2
+OPENVPN_VERSION=2.4.8
 OPENVPN_WEBUI_VERSION=master
 GO_VERSION=1.11.5
 GO_ARCH=armv6l
@@ -30,7 +31,7 @@ wget --progress=dot:giga https://github.com/syncloud/3rdparty/releases/download/
 tar xf nginx-${ARCH}.tar.gz
 mv nginx ${BUILD_DIR}
 
-wget --progress=dot:giga https://github.com/syncloud/3rdparty/releases/download/1/openvpn-${ARCH}.tar.gz
+wget --progress=dot:giga https://github.com/syncloud/3rdparty/releases/download/1/openvpn-${ARCH}-${OPENVPN_VERSION}.tar.gz
 tar xf openvpn-${ARCH}.tar.gz
 mv openvpn ${BUILD_DIR}
 
