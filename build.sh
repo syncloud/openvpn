@@ -60,6 +60,8 @@ cd openvpn-web-ui-${OPENVPN_WEBUI_VERSION}
 #go build -o openvpn-web-ui 
 bee pack -exr='^vendor|^data.db|^build|^README.md|^docs'
 
+mkdir ${DIR}/artifact
+cp openvpn-web-ui-${OPENVPN_WEBUI_VERSION}.tar.gz ${DIR}/artifact
 mkdir ${DIR}/build/${NAME}/META
 echo ${NAME} >> ${DIR}/build/${NAME}/META/app
 echo ${VERSION} >> ${DIR}/build/${NAME}/META/version
