@@ -32,7 +32,7 @@ tar xf nginx-${ARCH}.tar.gz
 mv nginx ${BUILD_DIR}
 
 wget --progress=dot:giga https://github.com/syncloud/3rdparty/releases/download/1/openvpn-${ARCH}-${OPENVPN_VERSION}.tar.gz
-tar xf openvpn-${ARCH}.tar.gz
+tar xf openvpn-${ARCH}-${OPENVPN_VERSION}.tar.gz
 mv openvpn ${BUILD_DIR}
 
 wget --progress=dot:giga https://github.com/syncloud/3rdparty/releases/download/1/python-${ARCH}.tar.gz
