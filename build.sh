@@ -52,16 +52,14 @@ cp -r ${DIR}/hooks ${BUILD_DIR}
 
 cd ${DIR}/build
 
-go get github.com/beego/bee
-
 wget --progress=dot:giga https://github.com/cyberb/openvpn-web-ui/archive/${OPENVPN_WEBUI_VERSION}.tar.gz
 tar xzf ${OPENVPN_WEBUI_VERSION}.tar.gz
 cd openvpn-web-ui-${OPENVPN_WEBUI_VERSION}
-#go build -o openvpn-web-ui 
-bee pack -exr='^vendor|^data.db|^build|^README.md|^docs'
+mkdir ${DIR}/build/${NAME}/web
+go build -o ${DIR}/build/${NAME}/web/openvpn-web-ui 
+cp -r static ${DIR}/build/${NAME}/web
+cp -r views ${DIR}/build/${NAME}/web
 
-mkdir ${DIR}/artifact
-cp openvpn-web-ui-${OPENVPN_WEBUI_VERSION}.tar.gz ${DIR}/artifact
 mkdir ${DIR}/build/${NAME}/META
 echo ${NAME} >> ${DIR}/build/${NAME}/META/app
 echo ${VERSION} >> ${DIR}/build/${NAME}/META/version
