@@ -20,7 +20,7 @@ if [[ ${ARCH} == "x86_64" ]]; then
     GO_ARCH=amd64
 fi
 GOROOT=${DIR}/go
-GOPATH=${DIR}/gopath
+export GOPATH=${DIR}/gopath
 export PATH=$GOROOT/bin:${GOPATH}/bin:$PATH
 
 rm -rf ${DIR}/build
@@ -58,7 +58,7 @@ wget --progress=dot:giga https://github.com/cyberb/openvpn-web-ui/archive/${OPEN
 tar xzf ${OPENVPN_WEBUI_VERSION}.tar.gz
 cd openvpn-web-ui-${OPENVPN_WEBUI_VERSION}
 #go build -o openvpn-web-ui 
-${GOPATH}/bin/bee pack -exr='^vendor|^data.db|^build|^README.md|^docs'
+bee pack -exr='^vendor|^data.db|^build|^README.md|^docs'
 
 mkdir ${DIR}/build/${NAME}/META
 echo ${NAME} >> ${DIR}/build/${NAME}/META/app
