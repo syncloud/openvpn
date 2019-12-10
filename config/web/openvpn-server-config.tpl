@@ -1,29 +1,29 @@
-management {{ .Management }}
+management {{ '{{' }} .Management {{ '}}' }}
 
-port {{ .Port }}
-proto {{ .Proto }}
+port {{ '{{' }} .Port {{ '}}' }}
+proto {{ '{{' }} .Proto {{ '}}' }}
 
 dev tun
 
-ca {{ .Ca }}
-cert {{ .Cert }}
-key {{ .Key }}
+ca {{ '{{' }} .Ca {{ '}}' }}
+cert {{ '{{' }} .Cert {{ '}}' }}
+key {{ '{{' }} .Key {{ '}}' }}
 
-cipher {{ .Cipher }}
-keysize {{ .Keysize }}
-auth {{ .Auth }}
-dh {{ .Dh }}
+cipher {{ '{{' }} .Cipher {{ '}}' }}
+keysize {{ '{{' }} .Keysize {{ '}}' }}
+auth {{ '{{' }} .Auth {{ '}}' }}
+dh {{ '{{' }} .Dh {{ '}}' }}
 
 server 10.8.0.0 255.255.255.0
-ifconfig-pool-persist {{ .IfconfigPoolPersist }}
+ifconfig-pool-persist {{ '{{' }} .IfconfigPoolPersist {{ '}}' }}
 push "route 10.8.0.0 255.255.255.0"
 push "dhcp-option DNS 8.8.8.8"
 push "dhcp-option DNS 8.8.4.4"
 
-keepalive {{ .Keepalive }}
+keepalive {{ '{{' }} .Keepalive {{ '}}' }}
 
 comp-lzo
-max-clients {{ .MaxClients }}
+max-clients {{ '{{' }} .MaxClients {{ '}}' }}
 
 persist-key
 persist-tun
