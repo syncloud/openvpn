@@ -5,9 +5,9 @@ from os.path import join, isfile
 from syncloudlib import fs, linux, gen, logger
 from syncloudlib.application import paths, storage
 
-APP_NAME = 'users'
+APP_NAME = 'openvpn'
 
-USER_NAME = 'usersapp'
+USER_NAME = APP_NAME
 DB_NAME = APP_NAME
 DB_USER = APP_NAME
 DB_PASSWORD = APP_NAME
@@ -30,10 +30,11 @@ class Installer:
         
         fs.makepath(join(self.app_data_dir, 'log'))
         fs.makepath(join(self.app_data_dir, 'nginx'))
+        fs.makepath(join(self.app_data_dir, 'db'))
       
         storage.init_storage(APP_NAME, USER_NAME)
 
-        templates_path = join(self.app_dir, 'config.templates')
+        templates_path = join(self.app_dir, 'config')
         config_path = join(self.snap_data_dir, 'config')
 
         variables = {

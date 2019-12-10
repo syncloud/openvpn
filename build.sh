@@ -47,7 +47,7 @@ tar xf go${GO_VERSION}.linux-${GO_ARCH}.tar.gz
 go version
 
 cp -r ${DIR}/bin ${BUILD_DIR}
-cp -r ${DIR}/config ${BUILD_DIR}/config.templates
+cp -r ${DIR}/config ${BUILD_DIR}
 cp -r ${DIR}/hooks ${BUILD_DIR}
 
 cd ${DIR}/build
@@ -56,13 +56,14 @@ wget --progress=dot:giga https://github.com/cyberb/openvpn-web-ui/archive/${OPEN
 tar xzf ${OPENVPN_WEBUI_VERSION}.tar.gz
 cd openvpn-web-ui-${OPENVPN_WEBUI_VERSION}
 mkdir ${DIR}/build/${NAME}/web
-go build -o ${DIR}/build/${NAME}/web/openvpn-web-ui 
-cp -r static ${DIR}/build/${NAME}/web
-cp -r views ${DIR}/build/${NAME}/web
+go build -o ${BUILD_DIR}/web/openvpn-web-ui 
+cp -r static ${BUILD_DIR}/web
+cp -r views ${BUILD_DIR}/web
+ln -s /var/snap/openvpn/current/config/web ${BUILD_DIR}/config/web
 
-mkdir ${DIR}/build/${NAME}/META
-echo ${NAME} >> ${DIR}/build/${NAME}/META/app
-echo ${VERSION} >> ${DIR}/build/${NAME}/META/version
+mkdir ${BUILD_DIR}/META
+echo ${NAME} >> ${BUILD_DIR}/META/app
+echo ${VERSION} >> ${BUILD_DIR}/META/version
 
 echo "snapping"
 SNAP_DIR=${DIR}/build/snap

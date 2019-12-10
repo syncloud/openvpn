@@ -1,28 +1,16 @@
 apps:
-  server:
-    user: usersapp
-    command: bin/service.server.sh start
-    daemon: simple
-    start-timeout: 600s
-    plugs:
-    - network
-    - network-bind
-    restart-condition: always
-    before: [nginx]
-
-  nginx:
-    user: usersapp
-    command: bin/service.nginx.sh start
-    daemon: simple
+  web:
+    user: openvpn
+    command: bin/service.web.sh start
+    daemon: forking
     plugs:
     - network
     - network-bind
     restart-condition: always
     start-timeout: 600s
-    stop-command: bin/service.nginx.sh stop
 
 confinement: strict
-description: Users
+description: OpenVPM
 grade: stable
-name: users
-summary: Users
+name: openvpn
+summary: OpenVPN
