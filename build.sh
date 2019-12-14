@@ -59,7 +59,6 @@ mkdir ${DIR}/build/${NAME}/web
 go build -o ${BUILD_DIR}/web/openvpn-web-ui 
 cp -r static ${BUILD_DIR}/web
 cp -r views ${BUILD_DIR}/web
-ln -s /var/snap/openvpn/current/config/web ${BUILD_DIR}/config/web
 
 mkdir ${BUILD_DIR}/META
 echo ${NAME} >> ${BUILD_DIR}/META/app

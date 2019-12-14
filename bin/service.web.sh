@@ -9,6 +9,7 @@ fi
 
 case $1 in
 start)
+    export CONFIG_FILE=/var/snap/openvpn/current/config/web/app.conf
     cd $DIR/web
     exec ./openvpn-web-ui
     ;;
