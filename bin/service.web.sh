@@ -7,10 +7,14 @@ if [[ -z "$1" ]]; then
     exit 1
 fi
 
+export CONFIG_DIR=${SNAP_DATA}/config/web
+
+echo "${CONFIG_DIR}" | logger -t openvpn-web
+
 case $1 in
 start)
     cd $DIR/web
-    exec ./openvpn-web-ui --config=${SNAP_DATA}/config/web | logger -t openvpn-web
+    exec ./openvpn-web-ui --config=${CONFIG_DIR}
     ;;
 *)
     echo "not valid command"
