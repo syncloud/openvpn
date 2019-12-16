@@ -10,7 +10,7 @@ fi
 case $1 in
 start)
     cd $DIR/web
-    exec ./openvpn-web-ui --config=${SNAP_DATA}/config/web/app.conf
+    exec ./openvpn-web-ui --config=${SNAP_DATA}/config/web
     ;;
 *)
     echo "not valid command"
