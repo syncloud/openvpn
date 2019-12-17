@@ -13,7 +13,7 @@ TMP_DIR = '/tmp/syncloud'
 
 
 @pytest.fixture(scope="session")
-def module_setup(request, device, data_dir, platform_data_dir, app_dir, log_dir, artifact_dir):
+def module_setup(request, device, data_dir, platform_data_dir, app_dir, log_dir, artifact_dir, snap_data_dir):
     def module_teardown():
         platform_log_dir = join(log_dir, 'platform_log')
         os.mkdir(platform_log_dir)
@@ -28,7 +28,8 @@ def module_setup(request, device, data_dir, platform_data_dir, app_dir, log_dir,
         device.run_ssh('cp /var/log/messages {0}/messages.log'.format(TMP_DIR), throw=False)
         device.run_ssh('ls -la /snap > {0}/snap.ls.log'.format(TMP_DIR), throw=False)
         device.run_ssh('ls -la {0}/ > {1}/app.ls.log'.format(app_dir, TMP_DIR), throw=False)
-        device.run_ssh('ls -la {0}/ > {1}/data.ls.log'.format(data_dir, TMP_DIR), throw=False)
+        device.run_ssh('ls -la {0}/ > {1}/data.ls.log'.format(snap_data_dir, TMP_DIR), throw=False)
+        device.run_ssh('ls -la {0}/ > {1}/common.ls.log'.format(data_dir, TMP_DIR), throw=False)
         device.run_ssh('ls -la {0}/web/ > {1}/web.ls.log'.format(app_dir, TMP_DIR), throw=False)
         device.run_ssh('ls -la {0}/log/ > {1}/log.ls.log'.format(data_dir, TMP_DIR), throw=False)
         device.run_ssh('ls -la {0}/config/ > {1}/app.config.ls.log'.format(app_dir, TMP_DIR), throw=False)

@@ -7,8 +7,6 @@ if [[ -z "$1" ]]; then
     exit 1
 fi
 
-#SOCKET=${SNAP_DATA}/.socket
-
 case $1 in
 start)
     /bin/rm -f ${SNAP_COMMON}/web.socket
