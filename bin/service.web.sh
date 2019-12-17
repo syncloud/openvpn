@@ -14,7 +14,7 @@ echo "${CONFIG_DIR}" | logger -t openvpn-web
 case $1 in
 start)
     cd $DIR/web
-    exec ./openvpn-web-ui --config=${CONFIG_DIR}
+    exec ./openvpn-web-ui --config=${CONFIG_DIR}  | logger -t openvpn-web
     ;;
 *)
     echo "not valid command"
