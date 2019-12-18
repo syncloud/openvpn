@@ -9,6 +9,7 @@ from syncloudlib.integration.screenshots import screenshots
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from subprocess import check_output
 
 DIR = dirname(__file__)
 
@@ -23,6 +24,8 @@ def module_setup(request, device, log_dir, ui_mode, artifact_dir):
         device.run_ssh('cp /var/log/syslog {0}/syslog.ui.{1}.log'.format(tmp_dir, ui_mode), throw=False)
       
         device.scp_from_device('{0}/*'.format(tmp_dir), artifact_dir)
+        check_output('chmod -R a+r {0}'.format(artifact_dir), shell=True)
+
     request.addfinalizer(module_teardown)
 
 def test_start(module_setup, app, domain, device_host):
