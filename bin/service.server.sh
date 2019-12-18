@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )
 
@@ -7,12 +7,20 @@ if [[ -z "$1" ]]; then
     exit 1
 fi
 
-export DATAROOTDIR=${SNAP_DATA}
-export SYSCONFDIR=${SNAP_DATA}/config
+SERVER_CONF=${SNAP_DATA}/openvpn/server.conf
 
 case $1 in
 start)
-    exec $DIR/python/bin/python $DIR/python/bin/ldapcherryd -c ${SNAP_DATA}/config/ldapcherry.ini -p ${SNAP_DATA}/ldapcherry.pid
+    mkdir -p /dev/net
+    if [ ! -c /dev/net/tun ]; then
+      mknod /dev/net/tun c 10 200
+    fi
+    while [ ! -f ${SERVER_CONF} ]
+    do
+      echo "waiting for ${SERVER_CONF}"
+      sleep 1
+    done
+    exec $DIR/openvpn/sbin/openvpn --config ${SERVER_CONF} --cd ${SNAP_DATA}/openvpn
     ;;
 *)
     echo "not valid command"

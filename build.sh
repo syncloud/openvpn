@@ -14,6 +14,7 @@ ARCH=$(uname -m)
 VERSION=$2
 OPENVPN_VERSION=2.4.8
 OPENVPN_WEBUI_VERSION=master
+EASY_RSA_VERSION=2.2.2
 GO_VERSION=1.11.5
 GO_ARCH=armv6l
 if [[ ${ARCH} == "x86_64" ]]; then
@@ -38,6 +39,10 @@ mv openvpn ${BUILD_DIR}
 wget --progress=dot:giga https://github.com/syncloud/3rdparty/releases/download/1/python-${ARCH}.tar.gz
 tar xf python-${ARCH}.tar.gz
 mv python ${BUILD_DIR}
+
+wget --progress=dot:giga https://github.com/OpenVPN/easy-rsa/releases/download/${EASY_RSA_VERSION}/EasyRSA-${EASY_RSA_VERSION}.tgz
+tar xf EasyRSA-${EASY_RSA_VERSION}.tgz
+mv EasyRSA-${EASY_RSA_VERSION} ${BUILD_DIR}/easy-rsa
 
 ${BUILD_DIR}/python/bin/pip install -r ${DIR}/requirements.txt
 
