@@ -28,7 +28,6 @@ max-clients {{ '{{' }} .MaxClients {{ '}}' }}
 persist-key
 persist-tun
 
-log         {{ snap_common }}/log/openvpn.log
 verb 3
 
 mute 10
