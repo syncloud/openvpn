@@ -7,7 +7,8 @@ if [[ -z "$1" ]]; then
     exit 1
 fi
 
-SERVER_CONF=${SNAP_DATA}/config/openvpn/server.conf
+CONFIG_DIR=${SNAP_DATA}/config/openvpn
+SERVER_CONF=${CONFIG_DIR}/server.conf
 
 export LD_LIBRARY_PATH=${DIR}/openvpn/lib
 
@@ -22,7 +23,7 @@ start)
       echo "waiting for ${SERVER_CONF}"
       sleep 1
     done
-    exec $DIR/openvpn/sbin/openvpn --daemon openvpn --config ${SERVER_CONF} --cd ${SNAP_DATA}/openvpn
+    exec $DIR/openvpn/sbin/openvpn --daemon openvpn --config ${SERVER_CONF} --cd ${CONFIG_DIR}
     ;;
 *)
     echo "not valid command"
