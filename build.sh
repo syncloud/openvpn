@@ -54,7 +54,6 @@ go version
 cp -r ${DIR}/bin ${BUILD_DIR}
 cp -r ${DIR}/config ${BUILD_DIR}
 cp -r ${DIR}/hooks ${BUILD_DIR}
-mkdir ${BUILD_DIR}/config/openvpn
 cd ${DIR}/build
 
 wget --progress=dot:giga https://github.com/cyberb/openvpn-web-ui/archive/${OPENVPN_WEBUI_VERSION}.tar.gz
