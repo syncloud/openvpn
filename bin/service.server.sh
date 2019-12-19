@@ -9,6 +9,8 @@ fi
 
 SERVER_CONF=${SNAP_DATA}/config/openvpn/server.conf
 
+export LD_LIBRARY_PATH=${DIR}/openvpn/lib
+
 case $1 in
 start)
     mkdir -p /dev/net
