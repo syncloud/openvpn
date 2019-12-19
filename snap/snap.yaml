@@ -11,7 +11,7 @@ apps:
   server:
     user: openvpn
     command: bin/service.server.sh start
-    daemon: simple
+    daemon: forking
     plugs:
     - network
     - network-bind

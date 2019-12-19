@@ -22,7 +22,7 @@ start)
       echo "waiting for ${SERVER_CONF}"
       sleep 1
     done
-    exec $DIR/openvpn/sbin/openvpn --config ${SERVER_CONF} --cd ${SNAP_DATA}/openvpn
+    exec $DIR/openvpn/sbin/openvpn --daemon openvpn --config ${SERVER_CONF} --cd ${SNAP_DATA}/openvpn
     ;;
 *)
     echo "not valid command"
