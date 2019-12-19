@@ -25,7 +25,7 @@ class Installer:
         self.snap_data = os.environ['SNAP_DATA']
         self.config_path = join(self.snap_data, 'config')
         self.openvpn_config_dir = join(self.config_path, 'openvpn')
-        self.openssl_bin = join(self.app_dir, '/openssl/bin/openssl')
+        self.openssl_bin = join(self.app_dir, 'openssl/bin/openssl')
 
     def install_config(self):
 
