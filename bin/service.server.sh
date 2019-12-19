@@ -7,7 +7,7 @@ if [[ -z "$1" ]]; then
     exit 1
 fi
 
-SERVER_CONF=${SNAP_DATA}/openvpn/server.conf
+SERVER_CONF=${SNAP_DATA}/config/openvpn/server.conf
 
 case $1 in
 start)
