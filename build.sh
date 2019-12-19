@@ -44,6 +44,10 @@ wget --progress=dot:giga https://github.com/OpenVPN/easy-rsa/releases/download/$
 tar xf EasyRSA-${EASY_RSA_VERSION}.tgz
 mv EasyRSA-${EASY_RSA_VERSION} ${BUILD_DIR}/easy-rsa
 
+wget --progress=dot:giga https://github.com/syncloud/3rdparty/releases/download/1/openssl-${ARCH}.tar.gz
+tar xf openssl-${ARCH}.tar.gz
+mv openssl ${BUILD_DIR}
+
 ${BUILD_DIR}/python/bin/pip install -r ${DIR}/requirements.txt
 
 wget https://dl.google.com/go/go${GO_VERSION}.linux-${GO_ARCH}.tar.gz --progress dot:giga
