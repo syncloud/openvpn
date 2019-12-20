@@ -4,7 +4,7 @@ from os.path import join, isfile
 from subprocess import check_output
 
 from syncloudlib import fs, linux, gen, logger
-from syncloudlib.application import paths, storage
+from syncloudlib.application import paths, storage, urls
 
 APP_NAME = 'openvpn'
 
@@ -22,21 +22,22 @@ class Installer:
         self.log = logger.get_logger('{0}_installer'.format(APP_NAME))
         self.app_dir = paths.get_app_dir(APP_NAME)
         self.snap_common = os.environ['SNAP_COMMON']
-        self.snap_data = os.environ['SNAP_DATA']
+        self.snap_data = join('/var/snap', APP_NAME, 'current')
         self.config_path = join(self.snap_data, 'config')
         self.openvpn_config_dir = join(self.config_path, 'openvpn')
         self.openssl_bin = join(self.app_dir, 'openssl/bin/openssl')
         self.generate_keys_bin = join(self.app_dir, 'bin/generate-keys.sh')
+        self.device_domain_name = urls.get_device_domain_name()
 
     def install_config(self):
 
         home_folder = join('/home', USER_NAME)
         linux.useradd(USER_NAME, home_folder=home_folder)
-        
+
         fs.makepath(join(self.snap_common, 'log'))
         fs.makepath(join(self.snap_common, 'nginx'))
         fs.makepath(join(self.snap_common, 'db'))
-      
+
         storage.init_storage(APP_NAME, USER_NAME)
 
         templates_path = join(self.app_dir, 'config')
@@ -45,7 +46,8 @@ class Installer:
             'app': APP_NAME,
             'app_dir': self.app_dir,
             'snap_data': self.snap_data,
-            'snap_common': os.environ['SNAP_COMMON']
+            'snap_common': self.snap_common,
+            'device_domain_name': self.device_domain_name
         }
         gen.generate_files(templates_path, self.config_path, variables)
 
@@ -71,9 +73,9 @@ class Installer:
             fs.touchfile(install_file)
         # else:
             # upgrade
-    
+
     def on_disk_change(self):
         self.prepare_storage()
-        
+
     def prepare_storage(self):
-        app_storage_dir = storage.init_storage(APP_NAME, USER_NAME)
+        storage.init_storage(APP_NAME, USER_NAME)
