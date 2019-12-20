@@ -10,7 +10,6 @@ cert {{ '{{' }} .Cert {{ '}}' }}
 key {{ '{{' }} .Key {{ '}}' }}
 
 cipher {{ '{{' }} .Cipher {{ '}}' }}
-keysize {{ '{{' }} .Keysize {{ '}}' }}
 auth {{ '{{' }} .Auth {{ '}}' }}
 dh {{ '{{' }} .Dh {{ '}}' }}
 
