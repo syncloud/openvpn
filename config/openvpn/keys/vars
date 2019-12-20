@@ -1,5 +1,5 @@
 export EASY_RSA="{{ app_dir }}/easy-rsa"
-export OPENSSL="{{ app_dir }}/openssl"
+export OPENSSL="{{ app_dir }}/openssl/bin/openssl"
 export PKCS11TOOL="pkcs11-tool"
 export GREP="grep"
 export KEY_CONFIG=$($EASY_RSA/whichopensslcnf $EASY_RSA)
