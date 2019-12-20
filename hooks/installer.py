@@ -26,6 +26,7 @@ class Installer:
         self.config_path = join(self.snap_data, 'config')
         self.openvpn_config_dir = join(self.config_path, 'openvpn')
         self.openssl_bin = join(self.app_dir, 'openssl/bin/openssl')
+        self.generate_keys_bin = join(self.app_dir, 'bin/generate-keys.sh')
 
     def install_config(self):
 
@@ -56,6 +57,7 @@ class Installer:
         self.install_config()
         check_output('{0} dhparam -dsaparam -out {1}/dh2048.pem 2048'.format(
             self.openssl_bin, self.openvpn_config_dir), shell=True)
+        check_output(self.generate_keys_bin, shell=True)
         self.fix_permissions()
 
     def post_refresh(self):
