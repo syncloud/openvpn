@@ -55,7 +55,9 @@ def test_certificates(driver, app_domain, ui_mode, screenshot_dir):
     screenshots(driver, screenshot_dir, 'certificates-' + ui_mode)
 
 def test_new_certificates(driver, app_domain, ui_mode, screenshot_dir):
-   
+    name = driver.find_element_by_id("id")
+    name.send_keys("test")
+
     driver.find_element_by_xpath("//button[contains(text(),'Create')]").click()
 
     screenshots(driver, screenshot_dir, 'certificates-new-' + ui_mode)
