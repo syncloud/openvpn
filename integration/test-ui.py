@@ -1,15 +1,11 @@
-import os
-import shutil
 import time
-import pytest
-from os.path import dirname, join, exists
+from os.path import dirname
+from subprocess import check_output
 
+import pytest
+import requests
 from syncloudlib.integration.hosts import add_host_alias_by_ip
 from syncloudlib.integration.screenshots import screenshots
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
-from subprocess import check_output
 
 DIR = dirname(__file__)
 
@@ -28,6 +24,7 @@ def module_setup(request, device, log_dir, ui_mode, artifact_dir):
 
     request.addfinalizer(module_teardown)
 
+
 def test_start(module_setup, app, domain, device_host):
     add_host_alias_by_ip(app, domain, device_host)
 
@@ -38,6 +35,7 @@ def test_login(driver, app_domain, ui_mode, screenshot_dir):
     time.sleep(10)
     
     screenshots(driver, screenshot_dir, 'login-' + ui_mode)
+
 
 def test_index(driver, device_user, device_password, ui_mode, screenshot_dir):
     user = driver.find_element_by_name("login")
@@ -54,10 +52,16 @@ def test_certificates(driver, app_domain, ui_mode, screenshot_dir):
     time.sleep(2)
     screenshots(driver, screenshot_dir, 'certificates-' + ui_mode)
 
-def test_new_certificates(driver, app_domain, ui_mode, screenshot_dir):
+
+def test_new_certificates(driver, ui_mode, screenshot_dir):
     name = driver.find_element_by_id("Name")
     name.send_keys("test")
 
     driver.find_element_by_xpath("//button[contains(text(),'Create')]").click()
 
     screenshots(driver, screenshot_dir, 'certificates-new-' + ui_mode)
+
+
+def test_certificate(app_domain):
+    response = requests.get('https://{0}'.format(app_domain), verify=False)
+    assert response.status_code == 200
