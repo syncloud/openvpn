@@ -47,3 +47,13 @@ def test_index(driver, device_user, device_password, ui_mode, screenshot_dir):
     password.submit()
     time.sleep(5)
     screenshots(driver, screenshot_dir, 'index-' + ui_mode)
+
+
+def test_certificates(driver, device_user, device_password, ui_mode, screenshot_dir):
+    driver.get("https://{0}/certificates".format(app_domain))
+    time.sleep(2)
+    screenshots(driver, screenshot_dir, 'certificates-' + ui_mode)
+
+def test_new_certificates(driver, device_user, device_password, ui_mode, screenshot_dir):
+    user = driver.find_element_by_name("create").click()
+    screenshots(driver, screenshot_dir, 'certificates-new-' + ui_mode)
