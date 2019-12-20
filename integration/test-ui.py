@@ -49,7 +49,7 @@ def test_index(driver, device_user, device_password, ui_mode, screenshot_dir):
     screenshots(driver, screenshot_dir, 'index-' + ui_mode)
 
 
-def test_certificates(driver, ui_mode, screenshot_dir):
+def test_certificates(driver, app_domain, ui_mode, screenshot_dir):
     driver.get("https://{0}/certificates".format(app_domain))
     time.sleep(2)
     screenshots(driver, screenshot_dir, 'certificates-' + ui_mode)
