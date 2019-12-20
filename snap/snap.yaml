@@ -9,7 +9,6 @@ apps:
     restart-condition: always
     start-timeout: 600s
   server:
-    user: openvpn
     command: bin/service.server.sh start
     daemon: forking
     plugs:
