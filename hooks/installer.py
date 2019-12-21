@@ -2,6 +2,7 @@ import logging
 import os
 from os.path import join, isfile
 from subprocess import check_output
+import shutil
 
 from syncloudlib import fs, linux, gen, logger
 from syncloudlib.application import paths, storage, urls
@@ -24,7 +25,7 @@ class Installer:
         self.snap_common = os.environ['SNAP_COMMON']
         self.snap_data = join('/var/snap', APP_NAME, 'current')
         self.config_path = join(self.snap_data, 'config')
-        self.openvpn_config_dir = join(self.config_path, 'openvpn')
+        self.openvpn_config_dir = join(self.snap_data, 'openvpn')
         self.openssl_bin = join(self.app_dir, 'openssl/bin/openssl')
         self.generate_keys_bin = join(self.app_dir, 'bin/generate-keys.sh')
         self.device_domain_name = urls.get_device_domain_name()
@@ -51,6 +52,15 @@ class Installer:
         }
         gen.generate_files(templates_path, self.config_path, variables)
 
+    def init_keys(self):
+        fs.makepath(self.openvpn_config_dir)
+        openvpn_keys_dir = join(self.openvpn_config_dir, 'keys')
+        fs.makepath(openvpn_keys_dir)
+        shutil.copy(join(self.config_path, 'openvpn/keys/index.txt'), openvpn_keys_dir)
+        shutil.copy(join(self.config_path, 'openvpn/keys/serial'), openvpn_keys_dir)
+        shutil.copy(join(self.config_path, 'openvpn/keys/vars'), openvpn_keys_dir)
+
+
     def fix_permissions(self):
         fs.chownpath(self.snap_data, USER_NAME, recursive=True)
         fs.chownpath(self.snap_common, USER_NAME, recursive=True)
@@ -60,6 +70,7 @@ class Installer:
         check_output('{0} dhparam -dsaparam -out {1}/dh2048.pem 2048'.format(
             self.openssl_bin, self.openvpn_config_dir), shell=True)
         check_output(self.generate_keys_bin, shell=True)
+        self.init_keys()
         self.fix_permissions()
 
     def post_refresh(self):

@@ -7,7 +7,7 @@ if [[ -z "$1" ]]; then
     exit 1
 fi
 
-CONFIG_DIR=${SNAP_DATA}/config/openvpn
+CONFIG_DIR=${SNAP_DATA}/openvpn
 SERVER_CONF=${CONFIG_DIR}/server.conf
 
 export LD_LIBRARY_PATH=${DIR}/openvpn/lib
