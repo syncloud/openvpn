@@ -13,7 +13,6 @@ NAME=$1
 ARCH=$(uname -m)
 VERSION=$2
 OPENVPN_VERSION=2.4.8
-OPENVPN_WEBUI_VERSION=master
 EASY_RSA_VERSION=2.2.2
 GO_VERSION=1.11.5
 GO_ARCH=armv6l
@@ -54,19 +53,14 @@ wget https://dl.google.com/go/go${GO_VERSION}.linux-${GO_ARCH}.tar.gz --progress
 tar xf go${GO_VERSION}.linux-${GO_ARCH}.tar.gz
 
 go version
-
+cd ${DIR}/web
+mkdir ${DIR}/build/${NAME}/web
+go build -o ${BUILD_DIR}/web/openvpn-web-ui 
+cp -r ${DIR}/static ${BUILD_DIR}/web
+cp -r ${DIR}/views ${BUILD_DIR}/web
 cp -r ${DIR}/bin ${BUILD_DIR}
 cp -r ${DIR}/config ${BUILD_DIR}
 cp -r ${DIR}/hooks ${BUILD_DIR}
-cd ${DIR}/build
-
-wget --progress=dot:giga https://github.com/cyberb/openvpn-web-ui/archive/${OPENVPN_WEBUI_VERSION}.tar.gz
-tar xzf ${OPENVPN_WEBUI_VERSION}.tar.gz
-cd openvpn-web-ui-${OPENVPN_WEBUI_VERSION}
-mkdir ${DIR}/build/${NAME}/web
-go build -o ${BUILD_DIR}/web/openvpn-web-ui 
-cp -r static ${BUILD_DIR}/web
-cp -r views ${BUILD_DIR}/web
 
 mkdir ${BUILD_DIR}/META
 echo ${NAME} >> ${BUILD_DIR}/META/app
