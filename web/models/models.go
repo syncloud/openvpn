@@ -85,7 +85,7 @@ func CreateDefaultOVConfig(configDir string, ovConfigPath string, address string
 		Profile: "default",
 		Config: config.Config{
 			Port:                1194,
-			Proto:               "udp",
+			Proto:               "udp6",
 			Cipher:              "AES-256-CBC",
 			Keysize:             256,
 			Auth:                "SHA256",
