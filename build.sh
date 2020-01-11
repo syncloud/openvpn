@@ -56,8 +56,9 @@ go version
 cd ${DIR}/web
 mkdir ${DIR}/build/${NAME}/web
 go build -o ${BUILD_DIR}/web/openvpn-web-ui 
-cp -r ${DIR}/static ${BUILD_DIR}/web
-cp -r ${DIR}/views ${BUILD_DIR}/web
+cp -r ${DIR}/web/static ${BUILD_DIR}/web
+cp -r ${DIR}/web/views ${BUILD_DIR}/web
+
 cp -r ${DIR}/bin ${BUILD_DIR}
 cp -r ${DIR}/config ${BUILD_DIR}
 cp -r ${DIR}/hooks ${BUILD_DIR}
