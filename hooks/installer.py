@@ -1,7 +1,7 @@
 import logging
 import os
 from os.path import join, isfile
-from subprocess import check_output
+from subprocess import check_output, CalledProcessError
 import shutil
 
 from syncloudlib import fs, linux, gen, logger
@@ -40,7 +40,6 @@ class Installer:
         fs.makepath(join(self.snap_common, 'db'))
 
         storage.init_storage(APP_NAME, USER_NAME)
-
         templates_path = join(self.app_dir, 'config')
 
         variables = {
@@ -48,7 +47,8 @@ class Installer:
             'app_dir': self.app_dir,
             'snap_data': self.snap_data,
             'snap_common': self.snap_common,
-            'device_domain_name': self.device_domain_name
+            'device_domain_name': self.device_domain_name,
+            'ipv6_config': self.ipv6_config()
         }
         gen.generate_files(templates_path, self.config_path, variables)
 
@@ -90,3 +90,10 @@ class Installer:
 
     def prepare_storage(self):
         storage.init_storage(APP_NAME, USER_NAME)
+
+    def ipv6_config(self):
+        try:
+            ipv6 = check_output("/snap/platform/current/bin/cli ipv6", shell=True)
+            ipv6_config = 'server-ipv6 {0}::/64'.format(ipv6)
+        except CalledProcessError, e:
+            return ''
