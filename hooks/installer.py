@@ -93,7 +93,7 @@ class Installer:
 
     def ipv6_config(self):
         try:
-            ipv6 = check_output("/snap/platform/current/bin/cli ipv6", shell=True)
+            ipv6 = check_output("/snap/platform/current/bin/cli ipv6 prefix", shell=True)
             return 'server-ipv6 {0}'.format(ipv6)
         except CalledProcessError, e:
             return ''
