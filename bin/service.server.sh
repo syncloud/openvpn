@@ -18,7 +18,8 @@ start)
     if [ ! -c /dev/net/tun ]; then
       mknod /dev/net/tun c 10 200
     fi
-    echo "1" > /proc/sys/net/ipv4/ip_forward
+    echo 1 > /proc/sys/net/ipv4/ip_forward
+    echo 1 > /proc/sys/net/ipv6/conf/all/forwarding
     if ! iptables -t nat -C POSTROUTING -s 10.8.0.0/24 -o eth0 -j MASQUERADE; then
         iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth0 -j MASQUERADE
     fi
