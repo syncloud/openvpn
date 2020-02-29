@@ -101,5 +101,3 @@ class Installer:
     def remove(self):
         check_output("ip link delete tun0", shell=True)
 
-s()
-
