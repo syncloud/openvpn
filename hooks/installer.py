@@ -93,7 +93,13 @@ class Installer:
 
     def ipv6_config(self):
         try:
-            ipv6 = check_output("/snap/platform/current/bin/cli ipv6 prefix 65", shell=True)
+            ipv6 = check_output("/snap/platform/current/bin/cli ipv6 prefix --size 65", shell=True)
             return 'server-ipv6 {0}'.format(ipv6)
         except CalledProcessError, e:
             return ''
+
+    def remove(self):
+        check_output("ip link delete tun0", shell=True)
+
+s()
+
