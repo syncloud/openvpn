@@ -8,7 +8,6 @@ lport 0
 cipher {{ '{{' }} .Cipher {{ '}}' }}
 auth {{ '{{' }} .Auth {{ '}}' }}
 tls-client
-redirect-gateway def1
 comp-lzo
 <ca>
 {{ '{{' }} .Ca {{ '}}' }}

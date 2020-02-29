@@ -23,6 +23,13 @@ start)
     if ! iptables -t nat -C POSTROUTING -s 10.8.0.0/24 -o eth0 -j MASQUERADE; then
         iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth0 -j MASQUERADE
     fi
+
+    #IPV6=$(/snap/platform/current/bin/cli ipv6)
+    #IPV6_65=$(/snap/platform/current/bin/cli ipv6 prefix 65)
+    #if ! ip6tables -t nat -A POSTROUTING -s ${IPV6_65} -j SNAT –to ${IPV6} ; then
+    #    ip6tables -t nat -A POSTROUTING -s ${IPV6_65} -j SNAT –to ${IPV6}
+    #fi
+    
     while [ ! -f ${SERVER_CONF} ]
     do
       echo "waiting for ${SERVER_CONF}"

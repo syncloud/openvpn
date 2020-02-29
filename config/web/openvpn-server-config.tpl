@@ -22,7 +22,8 @@ push "dhcp-option DNS 8.8.4.4"
 push "dhcp-option DNS 2001:4860:4860::8888"
 push "dhcp-option DNS 2001:4860:4860::8844"
 push "route-ipv6 2000::/3"
-
+push "redirect-gateway def1"
+push “redirect-gateway ipv6” 
 keepalive {{ '{{' }} .Keepalive {{ '}}' }}
 
 comp-lzo
