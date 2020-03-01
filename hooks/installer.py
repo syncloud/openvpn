@@ -98,6 +98,3 @@ class Installer:
         except CalledProcessError, e:
             return ''
 
-    def remove(self):
-        check_output("ip link delete tun0", shell=True)
-
