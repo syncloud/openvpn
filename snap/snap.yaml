@@ -28,7 +28,7 @@ apps:
     stop-command: bin/service.nginx.sh stop
 
 confinement: strict
-description: OpenVPM
+description: OpenVPN
 grade: stable
 name: openvpn
 summary: OpenVPN
