@@ -14,7 +14,8 @@ auth {{ '{{' }} .Auth {{ '}}' }}
 dh {{ '{{' }} .Dh {{ '}}' }}
 topology subnet 
 server 10.8.0.0 255.255.255.0
-{{ ipv6_config }}
+#server-ipv6
+
 ifconfig-pool-persist {{ '{{' }} .IfconfigPoolPersist {{ '}}' }}
 #push "route 10.8.0.0 255.255.255.0"
 push "dhcp-option DNS 8.8.8.8"

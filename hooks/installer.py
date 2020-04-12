@@ -1,8 +1,8 @@
 import logging
 import os
-from os.path import join, isfile
-from subprocess import check_output, CalledProcessError
 import shutil
+from os.path import join, isfile
+from subprocess import check_output
 
 from syncloudlib import fs, linux, gen, logger
 from syncloudlib.application import paths, storage, urls
@@ -47,8 +47,7 @@ class Installer:
             'app_dir': self.app_dir,
             'snap_data': self.snap_data,
             'snap_common': self.snap_common,
-            'device_domain_name': self.device_domain_name,
-            'ipv6_config': self.ipv6_config()
+            'device_domain_name': self.device_domain_name
         }
         gen.generate_files(templates_path, self.config_path, variables)
 
@@ -62,7 +61,6 @@ class Installer:
         check_output('{0} dhparam -dsaparam -out {1}/dh2048.pem 2048'.format(
             self.openssl_bin, self.openvpn_config_dir), shell=True)
         check_output(self.generate_keys_bin, shell=True)
-
 
     def fix_permissions(self):
         fs.chownpath(self.snap_data, USER_NAME, recursive=True)
@@ -89,12 +87,5 @@ class Installer:
         self.prepare_storage()
 
     def prepare_storage(self):
+        self.log.info("prepare_storage")
         storage.init_storage(APP_NAME, USER_NAME)
-
-    def ipv6_config(self):
-        try:
-            ipv6 = check_output("/snap/platform/current/bin/cli ipv6 prefix --size 65", shell=True)
-            return 'server-ipv6 {0}'.format(ipv6)
-        except CalledProcessError, e:
-            return ''
-
