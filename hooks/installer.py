@@ -28,6 +28,8 @@ class Installer:
         self.openvpn_config_dir = join(self.snap_data, 'openvpn')
         self.openssl_bin = join(self.app_dir, 'openssl/bin/openssl')
         self.generate_keys_bin = join(self.app_dir, 'bin/generate-keys.sh')
+        self.prefix_delegation_bin = join(self.app_dir, 'bin/prefix_delegation.sh')
+        self.prefix_delegation_link = join(self.app_dir, '/etc/dhcp/dhclient-exit-hooks.d/openvpn')
         self.device_domain_name = urls.get_device_domain_name()
 
     def install_config(self):
@@ -38,6 +40,10 @@ class Installer:
         fs.makepath(join(self.snap_common, 'log'))
         fs.makepath(join(self.snap_common, 'nginx'))
         fs.makepath(join(self.snap_common, 'db'))
+
+        if os.path.lexists(self.prefix_delegation_link):
+            os.remove(self.prefix_delegation_link)
+        os.symlink(self.prefix_delegation_bin, self.prefix_delegation_link)
 
         storage.init_storage(APP_NAME, USER_NAME)
         templates_path = join(self.app_dir, 'config')
