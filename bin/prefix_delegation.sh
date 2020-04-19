@@ -7,12 +7,12 @@ case ${reason} in
         if [[ -n "${new_ip6_prefix}" ]]; then
             if [[ "${new_ip6_prefix}" != "${old_ip6_prefix}" ]]; then
                 # enable on new prefix
-                sed -i 's/.*server-ipv6.*/server-ipv6 '${new_ip6_prefix}'/g' ${SERVER_CONF}
+                sed -i 's@.*server-ipv6.*@server-ipv6 '${new_ip6_prefix}'@g' ${SERVER_CONF}
                 snap restart openvpn
             fi
         else
             # disable ipv6
-            sed -i 's/.*server-ipv6.*/#server-ipv6'${new_ip6_prefix}'/g' ${SERVER_CONF}
+            sed -i 's@.*server-ipv6.*@#server-ipv6'${new_ip6_prefix}'@g' ${SERVER_CONF}
             snap restart openvpn
         fi
         ;;
