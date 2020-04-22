@@ -65,6 +65,9 @@ def test_index(app_domain):
     response = requests.get('https://{0}'.format(app_domain), verify=False)
     assert response.status_code == 200, response.text
 
+def test_prefix_delegation(app_domain):
+    device.run_ssh('/snap/openvpn/current/bin/prefix_delegation.sh', env_vars='reason=BOUND6 new_ip6_prefix=111:222:333::/64')
+
 
 def test_upgrade(app_archive_path, device_host, device_password):
     local_install(device_host, device_password, app_archive_path)
