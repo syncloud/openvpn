@@ -8,8 +8,16 @@ case $reason in
         if [ -n "$new_ip6_prefix" ]; then
             if [ "$new_ip6_prefix" != "$old_ip6_prefix" ]; then
                 # enable on new prefix
-                ip6_no_mask=$(echo $new_ip6_prefix | cut -f1 -d'/')
-                ip6="$ip6_no_mask/64"
+                ip6_no_prefix=$(echo $new_ip6_prefix | cut -f1 -d'/')
+                prefix=$(echo $new_ip6_prefix | cut -f2 -d'/')
+                if [ "$prefix" -gt 112 ]; then
+                    logger -t "openvpn-ipv6" "ipv6 prefix is greater than 112, not supported: $ip6"
+                    exit
+                fi
+                ip6=$new_ip6_prefix
+                if [ "$prefix" -lt 64 ]; then
+                    ip6="$ip6_no_prefix/64"
+                fi
                 logger -t "openvpn-ipv6" "enable ipv6: $ip6"
                 sed -i 's@.*server-ipv6.*@server-ipv6 '$ip6'@g' ${SERVER_CONF}
                 snap restart openvpn
