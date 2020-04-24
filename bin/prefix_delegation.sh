@@ -8,7 +8,6 @@ case $reason in
         if [ -n "$new_ip6_prefix" ]; then
             if [ "$new_ip6_prefix" != "$old_ip6_prefix" ]; then
                 # enable on new prefix
-                logger -t "openvpn-ipv6" "enable ipv6: $new_ip6_prefix"
                 ip6_no_mask=$(echo $new_ip6_prefix | cut -f1 -d'/')
                 ip6="$ip6_no_mask/64"
                 logger -t "openvpn-ipv6" "enable ipv6: $ip6"
