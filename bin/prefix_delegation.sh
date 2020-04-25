@@ -26,6 +26,7 @@ case $reason in
                 logger -t "openvpn-ipv6" "enable ipv6: $ip6"
                 sed -i 's@.*server-ipv6.*@server-ipv6 '$ip6'@g' ${SERVER_CONF}
                 snap restart openvpn
+                echo "$new_ip6_prefix" > $CURRENT_IPV6_PREFIX_FILE
             fi
         else
             if [ "$old_ip6_prefix" == "$current_ip6_prefix" ]; then
@@ -33,6 +34,7 @@ case $reason in
                 logger -t "openvpn-ipv6" "disable ipv6"
                 sed -i 's@.*server-ipv6.*@#server-ipv6@g' ${SERVER_CONF}
                 snap restart openvpn
+                echo "" > $CURRENT_IPV6_PREFIX_FILE
             fi
         fi
         ;;
