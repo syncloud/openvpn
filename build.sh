@@ -6,7 +6,8 @@ cd ${DIR}
 PREFIX=${DIR}/build/snap/openvpn
 NAME=openvpn
 
-apt-get -y install liblzo2-dev libpam-dev
+apt update
+apt -y install liblzo2-dev libpam-dev
 
 cd ${DIR}/build/openvpn
 
