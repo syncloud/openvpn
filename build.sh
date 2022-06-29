@@ -10,8 +10,6 @@ apt update
 apt -y install liblzo2-dev libpam-dev
 
 cd ${DIR}/build/openvpn-*
-
-cd ${NAME}-${VERSION}
 ./configure --prefix=${PREFIX}
 make
 make install
@@ -22,4 +20,3 @@ cp --remove-destination /usr/lib/$(dpkg-architecture -q DEB_HOST_GNU_TYPE)/libcr
 cp --remove-destination /usr/lib/$(dpkg-architecture -q DEB_HOST_GNU_TYPE)/libssl*.so* ${PREFIX}/lib
 
 ldd ${PREFIX}/sbin/openvpn
-
