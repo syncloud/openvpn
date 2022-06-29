@@ -9,7 +9,7 @@ NAME=openvpn
 apt update
 apt -y install liblzo2-dev libpam-dev
 
-cd ${DIR}/build/openvpn
+cd ${DIR}/build/openvpn-*
 
 cd ${NAME}-${VERSION}
 ./configure --prefix=${PREFIX}

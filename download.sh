@@ -19,8 +19,8 @@ wget --progress=dot:giga ${DOWNLOAD_URL}/nginx/nginx-${ARCH}.tar.gz
 tar xf nginx-${ARCH}.tar.gz
 mv nginx ${BUILD_DIR}
 
-wget https://swupdate.openvpn.org/community/releases/openvpn-${VERSION}.tar.gz  --progress dot:giga -O ${NAME}-${VERSION}.tar.gz
-tar xzf ${NAME}-${VERSION}.tar.gz
+wget https://swupdate.openvpn.org/community/releases/openvpn-${VERSION}.tar.gz  --progress dot:giga -O openvpn-${VERSION}.tar.gz
+tar xzf openvpn-${VERSION}.tar.gz
 
 wget --progress=dot:giga https://github.com/OpenVPN/easy-rsa/releases/download/${EASY_RSA_VERSION}/EasyRSA-${EASY_RSA_VERSION}.tgz
 tar xf EasyRSA-${EASY_RSA_VERSION}.tgz
