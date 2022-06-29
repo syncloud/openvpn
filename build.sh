@@ -3,82 +3,22 @@
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd ${DIR}
 
-if [[ -z "$2" ]]; then
-    echo "usage $0 app version"
-    exit 1
-fi
+PREFIX=${DIR}/build/snap/openvpn
+NAME=openvpn
 
-NAME=$1
+apt-get -y install liblzo2-dev libpam-dev
 
-ARCH=$(uname -m)
-VERSION=$2
-OPENVPN_VERSION=2.4.8
-EASY_RSA_VERSION=2.2.2
-GO_VERSION=1.11.5
-GO_ARCH=armv6l
-if [[ ${ARCH} == "x86_64" ]]; then
-    GO_ARCH=amd64
-fi
-GOROOT=${DIR}/go
-export GOPATH=${DIR}/gopath
-export PATH=$GOROOT/bin:${GOPATH}/bin:$PATH
+cd ${DIR}/build/openvpn
 
-rm -rf ${DIR}/build
-BUILD_DIR=${DIR}/build/${NAME}
-mkdir -p ${BUILD_DIR}
+cd ${NAME}-${VERSION}
+./configure --prefix=${PREFIX}
+make
+make install
 
-wget --progress=dot:giga https://github.com/syncloud/3rdparty/releases/download/1/nginx-${ARCH}.tar.gz
-tar xf nginx-${ARCH}.tar.gz
-mv nginx ${BUILD_DIR}
+export LD_LIBRARY_PATH=${PREFIX}/lib
+cp --remove-destination /lib/$(dpkg-architecture -q DEB_HOST_GNU_TYPE)/liblzo2.so* ${PREFIX}/lib
+cp --remove-destination /usr/lib/$(dpkg-architecture -q DEB_HOST_GNU_TYPE)/libcrypt*.so* ${PREFIX}/lib
+cp --remove-destination /usr/lib/$(dpkg-architecture -q DEB_HOST_GNU_TYPE)/libssl*.so* ${PREFIX}/lib
 
-wget --progress=dot:giga https://github.com/syncloud/3rdparty/releases/download/1/openvpn-${ARCH}-${OPENVPN_VERSION}.tar.gz
-tar xf openvpn-${ARCH}-${OPENVPN_VERSION}.tar.gz
-mv openvpn ${BUILD_DIR}
+ldd ${PREFIX}/sbin/openvpn
 
-wget --progress=dot:giga https://github.com/syncloud/3rdparty/releases/download/1/python-${ARCH}.tar.gz
-tar xf python-${ARCH}.tar.gz
-mv python ${BUILD_DIR}
-
-wget --progress=dot:giga https://github.com/OpenVPN/easy-rsa/releases/download/${EASY_RSA_VERSION}/EasyRSA-${EASY_RSA_VERSION}.tgz
-tar xf EasyRSA-${EASY_RSA_VERSION}.tgz
-mv EasyRSA-${EASY_RSA_VERSION} ${BUILD_DIR}/easy-rsa
-
-wget --progress=dot:giga https://github.com/syncloud/3rdparty/releases/download/1/openssl-${ARCH}.tar.gz
-tar xf openssl-${ARCH}.tar.gz
-mv openssl ${BUILD_DIR}
-
-${BUILD_DIR}/python/bin/pip install -r ${DIR}/requirements.txt
-
-wget https://dl.google.com/go/go${GO_VERSION}.linux-${GO_ARCH}.tar.gz --progress dot:giga
-tar xf go${GO_VERSION}.linux-${GO_ARCH}.tar.gz
-
-go version
-cd ${DIR}/web
-mkdir ${DIR}/build/${NAME}/web
-go build -o ${BUILD_DIR}/web/openvpn-web-ui 
-cp -r ${DIR}/web/static ${BUILD_DIR}/web
-cp -r ${DIR}/web/views ${BUILD_DIR}/web
-
-cp -r ${DIR}/bin ${BUILD_DIR}
-cp -r ${DIR}/config ${BUILD_DIR}
-cp -r ${DIR}/hooks ${BUILD_DIR}
-
-mkdir ${BUILD_DIR}/META
-echo ${NAME} >> ${BUILD_DIR}/META/app
-echo ${VERSION} >> ${BUILD_DIR}/META/version
-
-echo "snapping"
-SNAP_DIR=${DIR}/build/snap
-ARCH=$(dpkg-architecture -q DEB_HOST_ARCH)
-rm -rf ${DIR}/*.snap
-mkdir ${SNAP_DIR}
-cp -r ${BUILD_DIR}/* ${SNAP_DIR}/
-cp -r ${DIR}/snap/meta ${SNAP_DIR}/
-cp ${DIR}/snap/snap.yaml ${SNAP_DIR}/meta/snap.yaml
-echo "version: $VERSION" >> ${SNAP_DIR}/meta/snap.yaml
-echo "architectures:" >> ${SNAP_DIR}/meta/snap.yaml
-echo "- ${ARCH}" >> ${SNAP_DIR}/meta/snap.yaml
-
-PACKAGE=${NAME}_${VERSION}_${ARCH}.snap
-echo ${PACKAGE} > ${DIR}/package.name
-mksquashfs ${SNAP_DIR} ${DIR}/${PACKAGE} -noappend -comp xz -no-xattrs -all-root
