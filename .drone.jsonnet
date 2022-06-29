@@ -26,7 +26,7 @@ local build(arch, test_ui) = [{
     },
     {
         name: "build",
-        image: "debian:buster-slim",
+        image: "gcc:10.4.0-buster",
         commands: [
             "./build.sh "
         ],
@@ -352,3 +352,4 @@ local build(arch, test_ui) = [{
 build("amd64", true) + 
 build("arm64", false) +
 build("arm", false)
+
