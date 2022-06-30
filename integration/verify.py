@@ -5,7 +5,7 @@ from subprocess import check_output
 
 import pytest
 import requests
-from syncloudlib.integration.hosts import add_host_alias_by_ip
+from syncloudlib.integration.hosts import add_host_alias
 from syncloudlib.integration.installer import local_install, wait_for_installer
 
 DIR = dirname(__file__)
@@ -43,12 +43,9 @@ def module_setup(request, device, data_dir, platform_data_dir, app_dir, log_dir,
     request.addfinalizer(module_teardown)
 
 
-def test_start(module_setup, device, device_host, app, domain, log_dir):
-    shutil.rmtree(log_dir, ignore_errors=True)
-    os.mkdir(log_dir)
-    add_host_alias_by_ip(app, domain, device_host)
-    print(check_output('date', shell=True))
-    device.run_ssh('date', retries=20)
+def test_start(module_setup, device, app, domain, device_host):
+    add_host_alias(app, device_host, domain)
+    device.run_ssh('date', retries=100, throw=True)
 
 
 def test_activate_device(device):
