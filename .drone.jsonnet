@@ -43,7 +43,7 @@ local build(arch, test_ui) = [{
     },
     {
             name: "build web",
-            image: "golang:1.11.5",
+            image: "golang:1.18.2",
             commands: [
                 "cd web",
                 "./build.sh"
