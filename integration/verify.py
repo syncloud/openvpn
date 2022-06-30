@@ -1,10 +1,8 @@
 import os
-import shutil
-from os.path import dirname, join
-from subprocess import check_output
-
 import pytest
 import requests
+from os.path import dirname, join
+from subprocess import check_output
 from syncloudlib.integration.hosts import add_host_alias
 from syncloudlib.integration.installer import local_install, wait_for_installer
 
@@ -15,10 +13,9 @@ TMP_DIR = '/tmp/syncloud'
 @pytest.fixture(scope="session")
 def module_setup(request, device, data_dir, platform_data_dir, app_dir, log_dir, artifact_dir, snap_data_dir):
     def module_teardown():
-        platform_log_dir = join(log_dir, 'platform_log')
+        platform_log_dir = join(artifact_dir, 'platform_log')
         os.mkdir(platform_log_dir)
-        device.scp_from_device('{0}/log/*'.format(platform_data_dir), platform_log_dir)
-
+        device.scp_from_device('{0}/log/*'.format(platform_data_dir), platform_log_dir, throw=False)
         device.run_ssh('mkdir {0}'.format(TMP_DIR), throw=False)
         device.run_ssh('top -bn 1 -w 500 -c > {0}/top.log'.format(TMP_DIR), throw=False)
         device.run_ssh('ps auxfw > {0}/ps.log'.format(TMP_DIR), throw=False)
@@ -49,18 +46,18 @@ def test_start(module_setup, device, app, domain, device_host):
 
 
 def test_activate_device(device):
-    response = device.activate()
+    response = device.activate_custom()
     assert response.status_code == 200, response.text
 
 
 def test_install(app_archive_path, device_host, device_session, device_password):
     local_install(device_host, device_password, app_archive_path)
-    wait_for_installer(device_session, device_host)
 
 
 def test_index(app_domain):
     response = requests.get('https://{0}'.format(app_domain), verify=False)
     assert response.status_code == 200, response.text
+
 
 def test_prefix_delegation(device):
     device.run_ssh('/snap/openvpn/current/bin/prefix_delegation.sh', env_vars='reason=BOUND6 new_ip6_prefix=111:222:333::/64')
