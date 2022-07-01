@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-source ${SNAP_DATA}/openvpn/keys/vars
+#source ${SNAP_DATA}/openvpn/keys/vars
 
 CA_NAME=LocalCA
 SERVER_NAME=server

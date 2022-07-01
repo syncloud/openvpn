@@ -26,6 +26,7 @@ rm openvpn-${VERSION}.tar.gz
 wget --progress=dot:giga https://github.com/OpenVPN/easy-rsa/releases/download/v${EASY_RSA_VERSION}/EasyRSA-${EASY_RSA_VERSION}.tgz
 tar xf EasyRSA-${EASY_RSA_VERSION}.tgz
 mv EasyRSA-${EASY_RSA_VERSION} ${BUILD_DIR}/easy-rsa
+cp -r ${DIR}/config/easy-rsa/vars ${BUILD_DIR}/easy-rsa
 
 wget --progress=dot:giga ${DOWNLOAD_URL}/openssl/openssl-${ARCH}.tar.gz
 tar xf openssl-${ARCH}.tar.gz
