@@ -3,12 +3,12 @@ package lib
 import (
 	"fmt"
 	"github.com/adamwalach/openvpn-web-ui/state"
+	"github.com/astaxie/beego"
 	"io/ioutil"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
-	"path/filepath"
-	"github.com/astaxie/beego"
 )
 
 //Cert
@@ -100,7 +100,7 @@ func CreateCertificate(name string) error {
 		fmt.Sprintf(
 			"source %s &&"+
 				"export KEY_NAME=%s &&"+
-				"%s/build-key --batch %s", varsPath, name, rsaPath, name))
+				"%s/easyrsa --batch build-client-full %s nopass", varsPath, name, rsaPath, name))
 	cmd.Dir = state.GlobalCfg.OVConfigPath
 	output, err := cmd.CombinedOutput()
 	if err != nil {
