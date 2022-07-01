@@ -23,7 +23,7 @@ wget https://swupdate.openvpn.org/community/releases/openvpn-${VERSION}.tar.gz  
 tar xzf openvpn-${VERSION}.tar.gz
 rm openvpn-${VERSION}.tar.gz
 
-wget --progress=dot:giga https://github.com/OpenVPN/easy-rsa/releases/download/${EASY_RSA_VERSION}/EasyRSA-${EASY_RSA_VERSION}.tgz
+wget --progress=dot:giga https://github.com/OpenVPN/easy-rsa/releases/download/v${EASY_RSA_VERSION}/EasyRSA-${EASY_RSA_VERSION}.tgz
 tar xf EasyRSA-${EASY_RSA_VERSION}.tgz
 mv EasyRSA-${EASY_RSA_VERSION} ${BUILD_DIR}/easy-rsa
 
