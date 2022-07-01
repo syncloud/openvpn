@@ -3,7 +3,7 @@
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd ${DIR}
 VERSION=2.4.8
-EASY_RSA_VERSION=3.0.1
+EASY_RSA_VERSION=3.0.7
 
 ARCH=$(uname -m)
 DOWNLOAD_URL=https://github.com/syncloud/3rdparty/releases/download
