@@ -6,7 +6,6 @@ import (
 	"github.com/astaxie/beego"
 	"io/ioutil"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"time"
 )
