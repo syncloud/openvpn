@@ -22,8 +22,9 @@ cp /lib/*/libnsl.so* ${PREFIX}/lib
 cp /lib/*/libresolv.so* ${PREFIX}/lib
 cp /lib/*/libdl.so* ${PREFIX}/lib
 cp /lib/*/libc.so* ${PREFIX}/lib
-cp /lib/x*/libpthread.so* ${PREFIX}/lib
+cp /lib/*/libpthread.so* ${PREFIX}/lib
 cp $(readlink -f /lib*/ld-linux-*.so*) ${PREFIX}/lib/ld.so
 cp $DIR/bin/openvpn.sh ${PREFIX}/sbin
 
 ldd ${PREFIX}/sbin/openvpn
+
