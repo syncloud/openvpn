@@ -4,7 +4,6 @@ CA_NAME=LocalCA
 SERVER_NAME=server
 export KEY_NAME=$CA_NAME
 echo "Generating CA cert"
-/snap/openvpn/current/easy-rsa/easyrsa init-pki
 /snap/openvpn/current/easy-rsa/easyrsa --batch build-ca nopass
 
 export KEY_NAME=$SERVER_NAME
