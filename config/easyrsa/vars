@@ -1,4 +1,4 @@
-set_var EASYRSA                 "/snap/openvpn/current/easy-rsa"
+set_var EASYRSA                 "/snap/openvpn/current/easyrsa"
 set_var EASYRSA_OPENSSL         "/snap/openvpn/current/openssl/bin/openssl"
 set_var EASYRSA_PKI             "/var/snap/openvpn/current/pki"
 set_var EASYRSA_DN              "cn_only"

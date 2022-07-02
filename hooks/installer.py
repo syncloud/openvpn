@@ -31,6 +31,7 @@ class Installer:
         self.prefix_delegation_bin = join(self.app_dir, 'bin/prefix_delegation.sh')
         self.prefix_delegation_link = join(self.app_dir, '/etc/dhcp/dhclient-exit-hooks.d/openvpn')
         self.device_domain_name = urls.get_device_domain_name()
+        self.pki_dir = join(self.snap_data, 'pki')
 
     def install_config(self):
 
@@ -40,10 +41,7 @@ class Installer:
         fs.makepath(join(self.snap_common, 'log'))
         fs.makepath(join(self.snap_common, 'nginx'))
         fs.makepath(join(self.snap_common, 'db'))
-        fs.makepath(join(self.snap_data, 'pki'))
-        fs.makepath(join(self.snap_data, 'pki', 'private'))
-        fs.makepath(join(self.snap_data, 'pki', 'reqs'))
-
+        
         if os.path.lexists(self.prefix_delegation_link):
             os.remove(self.prefix_delegation_link)
         os.symlink(self.prefix_delegation_bin, self.prefix_delegation_link)
@@ -62,11 +60,12 @@ class Installer:
 
     def init_keys(self):
         fs.makepath(self.openvpn_config_dir)
-        openvpn_keys_dir = join(self.openvpn_config_dir, 'keys')
-        fs.makepath(openvpn_keys_dir)
-        #shutil.copy(join(self.config_path, 'openvpn/keys/index.txt'), openvpn_keys_dir)
-        #shutil.copy(join(self.config_path, 'openvpn/keys/serial'), openvpn_keys_dir)
-        #shutil.copy(join(self.config_path, 'openvpn/keys/vars'), openvpn_keys_dir)
+        fs.makepath(self.pki_dir)
+        fs.makepath(join(self.pki_dir, 'private'))
+        fs.makepath(join(self.pki_dir, 'reqs'))
+
+        shutil.copy(join(self.config_path, 'pki/index.txt'), self.pki_dir)
+        shutil.copy(join(self.config_path, 'pki/serial'), self.pki_dir)
         check_output('{0} dhparam -dsaparam -out {1}/dh2048.pem 2048'.format(
             self.openssl_bin, self.openvpn_config_dir), shell=True)
         check_output(self.generate_keys_bin, shell=True)
@@ -98,3 +97,4 @@ class Installer:
     def prepare_storage(self):
         self.log.info("prepare_storage")
         storage.init_storage(APP_NAME, USER_NAME)
+(install_file)
