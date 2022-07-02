@@ -97,4 +97,3 @@ class Installer:
     def prepare_storage(self):
         self.log.info("prepare_storage")
         storage.init_storage(APP_NAME, USER_NAME)
-(install_file)
