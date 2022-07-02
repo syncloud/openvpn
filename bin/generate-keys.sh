@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 
 CA_NAME=LocalCA
 SERVER_NAME=server
