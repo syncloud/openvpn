@@ -96,8 +96,8 @@ func CreateDefaultOVConfig(configDir string, ovConfigPath string, address string
 			MaxClients:          100,
 			Server:              "10.8.0.0 255.255.255.0",
 			Ca:                  "/var/snap/openvpn/current/pki/ca.crt",
-			Cert:                "/var/snap/openvpn/current/pki/server.crt",
-			Key:                 "/var/snap/openvpn/current/pki/server.key",
+			Cert:                "/var/snap/openvpn/current/pki/issued/server.crt",
+			Key:                 "/var/snap/openvpn/current/pki/private/server.key",
 		},
 	}
 	o := orm.NewOrm()
