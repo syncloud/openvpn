@@ -8,5 +8,5 @@ echo "Generating CA cert"
 
 export KEY_NAME=$SERVER_NAME
 echo "Generating server cert"
-/snap/openvpn/current/easy-rsa/build-key-server $SERVER_NAME
+#/snap/openvpn/current/easy-rsa/build-key-server $SERVER_NAME
 /snap/openvpn/current/easy-rsa/easyrsa --batch build-server-full $SERVER_NAME nopass
