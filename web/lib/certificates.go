@@ -94,10 +94,8 @@ func trim(s string) string {
 
 func CreateCertificate(name string) error {
 	rsaPath := beego.AppConfig.String("EasyRsaPath")
-		cmd := exec.Command("/bin/bash", "-c",
-		fmt.Sprintf(
-				"export KEY_NAME=%s &&"+
-				"%s/easyrsa --batch build-client-full %s nopass", name, rsaPath, name))
+	cmd := exec.Command("/bin/bash", "-c",
+		fmt.Sprintf("%s/easyrsa --batch build-client-full %s nopass", rsaPath, name))
 	cmd.Dir = state.GlobalCfg.OVConfigPath
 	output, err := cmd.CombinedOutput()
 	if err != nil {
