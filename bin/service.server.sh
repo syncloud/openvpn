@@ -35,7 +35,7 @@ start)
       echo "waiting for ${SERVER_CONF}"
       sleep 1
     done
-    exec $DIR/openvpn/bin/openvpn.sh --daemon openvpn --config ${SERVER_CONF} --cd ${CONFIG_DIR}
+    exec $DIR/openvpn/sbin/openvpn.sh --daemon openvpn --config ${SERVER_CONF} --cd ${CONFIG_DIR}
     ;;
 *)
     echo "not valid command"
