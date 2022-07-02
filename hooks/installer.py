@@ -63,7 +63,7 @@ class Installer:
         fs.makepath(openvpn_keys_dir)
         shutil.copy(join(self.config_path, 'openvpn/keys/index.txt'), openvpn_keys_dir)
         shutil.copy(join(self.config_path, 'openvpn/keys/serial'), openvpn_keys_dir)
-        shutil.copy(join(self.config_path, 'openvpn/keys/vars'), openvpn_keys_dir)
+        #shutil.copy(join(self.config_path, 'openvpn/keys/vars'), openvpn_keys_dir)
         check_output('{0} dhparam -dsaparam -out {1}/dh2048.pem 2048'.format(
             self.openssl_bin, self.openvpn_config_dir), shell=True)
         check_output(self.generate_keys_bin, shell=True)
