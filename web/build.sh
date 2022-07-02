@@ -5,4 +5,4 @@ cd ${DIR}
 
 BUILD_DIR=${DIR}/../build/snap
 mkdir ${BUILD_DIR}/web
-go build -o ${BUILD_DIR}/web/openvpn-web-ui 
+go build -ldflags '-linkmode external -extldflags -static' -o ${BUILD_DIR}/web/openvpn-web-ui 
