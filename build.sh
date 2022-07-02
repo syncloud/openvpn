@@ -15,8 +15,15 @@ make
 make install
 
 export LD_LIBRARY_PATH=${PREFIX}/lib
-cp --remove-destination /lib/$(dpkg-architecture -q DEB_HOST_GNU_TYPE)/liblzo2.so* ${PREFIX}/lib
-cp --remove-destination /usr/lib/$(dpkg-architecture -q DEB_HOST_GNU_TYPE)/libcrypt*.so* ${PREFIX}/lib
-cp --remove-destination /usr/lib/$(dpkg-architecture -q DEB_HOST_GNU_TYPE)/libssl*.so* ${PREFIX}/lib
+cp /lib/*/liblzo2.so* ${PREFIX}/lib
+cp /usr/lib/*/libcrypt*.so* ${PREFIX}/lib
+cp /usr/lib/*/libssl*.so* ${PREFIX}/lib
+cp /lib/*/libnsl.so* ${PREFIX}/lib
+cp /lib/*/libresolv.so* ${PREFIX}/lib
+cp /lib/*/libdl.so* ${PREFIX}/lib
+cp /lib/*/libc.so* ${PREFIX}/lib
+cp /lib/x*/libpthread.so* ${PREFIX}/lib
+cp $(readlink -f /lib*/ld-linux-*.so*) ${PREFIX}/lib/ld.so
+cp $DIR/bin/openvpn.sh ${PREFIX}/bin
 
 ldd ${PREFIX}/sbin/openvpn
