@@ -1,7 +1,7 @@
 import time
 from os.path import dirname
 from subprocess import check_output
-
+from integration.lib import login
 import pytest
 import requests
 from syncloudlib.integration.hosts import add_host_alias
@@ -29,22 +29,8 @@ def test_start(module_setup, app, domain, device_host):
     add_host_alias(app, device_host, domain)
 
 
-def test_login(driver, app_domain, ui_mode, screenshot_dir):
-    url = "https://{0}".format(app_domain)
-    driver.get(url)
-    time.sleep(10)
-    
-    screenshots(driver, screenshot_dir, 'login-' + ui_mode)
-
-
-def test_index(driver, device_user, device_password, ui_mode, screenshot_dir):
-    user = driver.find_element_by_name("login")
-    user.send_keys(device_user)
-    password = driver.find_element_by_name("password")
-    password.send_keys(device_password)
-    password.submit()
-    time.sleep(5)
-    screenshots(driver, screenshot_dir, 'index-' + ui_mode)
+def test_login(selenium, device_user, device_password):
+    login(selenium, device_user, device_password)
 
 
 def test_certificates(driver, app_domain, ui_mode, screenshot_dir):
