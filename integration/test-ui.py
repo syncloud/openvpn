@@ -4,14 +4,14 @@ from subprocess import check_output
 
 import pytest
 import requests
-from syncloudlib.integration.hosts import add_host_alias_by_ip
+from syncloudlib.integration.hosts import add_host_alias
 from syncloudlib.integration.screenshots import screenshots
 
 DIR = dirname(__file__)
 
 
 @pytest.fixture(scope="session")
-def module_setup(request, device, log_dir, ui_mode, artifact_dir):
+def module_setup(request, device, ui_mode, artifact_dir):
     def module_teardown():
         tmp_dir = '/tmp/syncloud/ui'
         device.activated()
@@ -26,7 +26,7 @@ def module_setup(request, device, log_dir, ui_mode, artifact_dir):
 
 
 def test_start(module_setup, app, domain, device_host):
-    add_host_alias_by_ip(app, domain, device_host)
+    add_host_alias(app, device_host, domain)
 
 
 def test_login(driver, app_domain, ui_mode, screenshot_dir):
