@@ -65,3 +65,7 @@ def test_new_certificates(driver, ui_mode, screenshot_dir):
 def test_certificate(app_domain):
     response = requests.get('https://{0}'.format(app_domain), verify=False)
     assert response.status_code == 200
+
+
+def test_teardown(driver):
+    driver.quit()
