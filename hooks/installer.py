@@ -49,14 +49,6 @@ class Installer:
         fs.makepath(self.pki_dir)
         fs.makepath(self.pki_private_dir)
         fs.makepath(join(self.pki_dir, 'reqs'))
-        if not os.path.exists(join(self.pki_dir, 'index.txt')):
-            shutil.copy(join(self.config_path, 'pki/index.txt'), self.pki_dir)
-        if not os.path.exists(join(self.pki_dir, 'serial')):
-            shutil.copy(join(self.config_path, 'pki/serial'), self.pki_dir)
-        if not os.path.exists(self.dh_file):
-            check_output('{0} dhparam -dsaparam -out {1} 2048'.format(self.openssl_bin, self.dh_file), shell=True)
-        if not (os.path.exists(self.ca_key_file) and os.path.exists(self.server_key_file)):
-            check_output(self.generate_keys_bin, shell=True)
 
         if os.path.lexists(self.prefix_delegation_link):
             os.remove(self.prefix_delegation_link)
@@ -73,6 +65,15 @@ class Installer:
             'device_domain_name': self.device_domain_name
         }
         gen.generate_files(templates_path, self.config_path, variables)
+
+        if not os.path.exists(join(self.pki_dir, 'index.txt')):
+            shutil.copy(join(self.config_path, 'pki/index.txt'), self.pki_dir)
+        if not os.path.exists(join(self.pki_dir, 'serial')):
+            shutil.copy(join(self.config_path, 'pki/serial'), self.pki_dir)
+        if not os.path.exists(self.dh_file):
+            check_output('{0} dhparam -dsaparam -out {1} 2048'.format(self.openssl_bin, self.dh_file), shell=True)
+        if not (os.path.exists(self.ca_key_file) and os.path.exists(self.server_key_file)):
+            check_output(self.generate_keys_bin, shell=True)
 
     def fix_permissions(self):
         fs.chownpath(self.snap_data, USER_NAME, recursive=True)
