@@ -31,6 +31,12 @@ class Installer:
         self.prefix_delegation_bin = join(self.app_dir, 'bin/prefix_delegation.sh')
         self.prefix_delegation_link = join(self.app_dir, '/etc/dhcp/dhclient-exit-hooks.d/openvpn')
         self.device_domain_name = urls.get_device_domain_name()
+        self.pki_dir = join(self.snap_data, 'pki')
+        self.dh_file = join(self.openvpn_config_dir, 'dh2048.pem')
+        self.pki_private_dir = join(self.pki_dir, 'private')
+        self.ca_key_file = join(self.pki_dir, 'ca.key')
+        self.server_key_file = join(self.pki_dir, 'server.key')
+        self.server_conf_file = join(self.openvpn_config_dir, 'server.conf')
 
     def install_config(self):
 
@@ -40,6 +46,10 @@ class Installer:
         fs.makepath(join(self.snap_common, 'log'))
         fs.makepath(join(self.snap_common, 'nginx'))
         fs.makepath(join(self.snap_common, 'db'))
+        fs.makepath(self.openvpn_config_dir)
+        fs.makepath(self.pki_dir)
+        fs.makepath(self.pki_private_dir)
+        fs.makepath(join(self.pki_dir, 'reqs'))
 
         if os.path.lexists(self.prefix_delegation_link):
             os.remove(self.prefix_delegation_link)
@@ -57,16 +67,16 @@ class Installer:
         }
         gen.generate_files(templates_path, self.config_path, variables)
 
-    def init_keys(self):
-        fs.makepath(self.openvpn_config_dir)
-        openvpn_keys_dir = join(self.openvpn_config_dir, 'keys')
-        fs.makepath(openvpn_keys_dir)
-        shutil.copy(join(self.config_path, 'openvpn/keys/index.txt'), openvpn_keys_dir)
-        shutil.copy(join(self.config_path, 'openvpn/keys/serial'), openvpn_keys_dir)
-        shutil.copy(join(self.config_path, 'openvpn/keys/vars'), openvpn_keys_dir)
-        check_output('{0} dhparam -dsaparam -out {1}/dh2048.pem 2048'.format(
-            self.openssl_bin, self.openvpn_config_dir), shell=True)
-        check_output(self.generate_keys_bin, shell=True)
+        if not os.path.exists(join(self.pki_dir, 'index.txt')):
+            shutil.copy(join(self.config_path, 'pki/index.txt'), self.pki_dir)
+        if not os.path.exists(join(self.pki_dir, 'serial')):
+            shutil.copy(join(self.config_path, 'pki/serial'), self.pki_dir)
+        if not os.path.exists(self.dh_file):
+            check_output('{0} dhparam -dsaparam -out {1} 2048'.format(self.openssl_bin, self.dh_file), shell=True)
+        if not (os.path.exists(self.ca_key_file) and os.path.exists(self.server_key_file)):
+            if os.path.exists(self.server_conf_file):
+                os.remove(self.server_conf_file)
+            check_output(self.generate_keys_bin, shell=True)
 
     def fix_permissions(self):
         fs.chownpath(self.snap_data, USER_NAME, recursive=True)
@@ -74,7 +84,6 @@ class Installer:
 
     def install(self):
         self.install_config()
-        self.init_keys()
         self.fix_permissions()
 
     def post_refresh(self):

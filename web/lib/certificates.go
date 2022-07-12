@@ -3,12 +3,11 @@ package lib
 import (
 	"fmt"
 	"github.com/adamwalach/openvpn-web-ui/state"
+	"github.com/astaxie/beego"
 	"io/ioutil"
 	"os/exec"
 	"strings"
 	"time"
-	"path/filepath"
-	"github.com/astaxie/beego"
 )
 
 //Cert
@@ -72,9 +71,9 @@ func parseDetails(d string) *Details {
 			fields := strings.Split(trim(line), "=")
 			switch fields[0] {
 			case "name":
-				details.Name = fields[1]
-			case "CN":
 				details.CN = fields[1]
+			case "CN":
+				details.Name = fields[1]
 			case "C":
 				details.Country = fields[1]
 			case "O":
@@ -95,12 +94,8 @@ func trim(s string) string {
 
 func CreateCertificate(name string) error {
 	rsaPath := beego.AppConfig.String("EasyRsaPath")
-	varsPath := filepath.Join(state.GlobalCfg.OVConfigPath, "keys/vars")
 	cmd := exec.Command("/bin/bash", "-c",
-		fmt.Sprintf(
-			"source %s &&"+
-				"export KEY_NAME=%s &&"+
-				"%s/build-key --batch %s", varsPath, name, rsaPath, name))
+		fmt.Sprintf("%s/easyrsa --batch build-client-full %s nopass", rsaPath, name))
 	cmd.Dir = state.GlobalCfg.OVConfigPath
 	output, err := cmd.CombinedOutput()
 	if err != nil {

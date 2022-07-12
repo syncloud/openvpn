@@ -1,13 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 
-source ${SNAP_DATA}/openvpn/keys/vars
-
-CA_NAME=LocalCA
-SERVER_NAME=server
-export KEY_NAME=$CA_NAME
-echo "Generating CA cert"
-$EASY_RSA/pkitool --initca
-
-export KEY_NAME=$SERVER_NAME
-echo "Generating server cert"
-$EASY_RSA/pkitool --server $SERVER_NAME
+/snap/openvpn/current/easyrsa/easyrsa --batch build-ca nopass | logger
+/snap/openvpn/current/easyrsa/easyrsa --batch build-server-full server nopass | logger

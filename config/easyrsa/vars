@@ -1,0 +1,19 @@
+set_var EASYRSA                 "/snap/openvpn/current/easyrsa"
+set_var EASYRSA_OPENSSL         "/snap/openvpn/current/openssl/bin/openssl"
+set_var EASYRSA_PKI             "/var/snap/openvpn/current/pki"
+set_var EASYRSA_DN              "cn_only"
+set_var EASYRSA_REQ_COUNTRY     "US"
+set_var EASYRSA_REQ_PROVINCE    "NY"
+set_var EASYRSA_REQ_CITY        "New York"
+set_var EASYRSA_REQ_ORG         "Syncloud"
+set_var EASYRSA_REQ_EMAIL       "support@syncloud.it"
+set_var EASYRSA_REQ_OU          "Syncloud"
+set_var EASYRSA_KEY_SIZE        2048
+set_var EASYRSA_ALGO            rsa
+set_var EASYRSA_CA_EXPIRE       7500
+set_var EASYRSA_CERT_EXPIRE     3650
+set_var EASYRSA_NS_SUPPORT      "no"
+set_var EASYRSA_NS_COMMENT      "Syncloud"
+set_var EASYRSA_EXT_DIR         "$EASYRSA/x509-types"
+set_var EASYRSA_SSL_CONF        "$EASYRSA/openssl-easyrsa.cnf"
+set_var EASYRSA_DIGEST          "sha256"

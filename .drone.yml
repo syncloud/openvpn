@@ -1,170 +1,7 @@
 ---
 kind: pipeline
-name: arm jessie
-
-platform:
-  os: linux
-  arch: arm
-
-steps:
-- name: version
-  image: syncloud/build-deps-arm
-  commands:
-  - echo $(date +%y%m%d)$DRONE_BUILD_NUMBER > version
-  - echo jessiearm$DRONE_BRANCH > domain
-
-- name: build
-  image: syncloud/build-deps-arm
-  commands:
-  - VERSION=$(cat version)
-  - ./build.sh openvpn $VERSION
-
-- name: test-intergation
-  image: syncloud/build-deps-arm
-  commands:
-  - pip2 install -r dev_requirements.txt
-  - APP_ARCHIVE_PATH=$(realpath $(cat package.name))
-  - DOMAIN=$(cat domain)
-  - cd integration
-  - py.test -x -s verify.py --domain=$DOMAIN --app-archive-path=$APP_ARCHIVE_PATH --device-host=device --app=openvpn
-
-
-- name: upload
-  image: syncloud/build-deps-arm
-  commands:
-  - VERSION=$(cat version)
-  - PACKAGE=$(cat package.name)
-  - pip2 install -r dev_requirements.txt
-  - syncloud-upload.sh openvpn $DRONE_BRANCH $VERSION $PACKAGE
-  environment:
-    AWS_ACCESS_KEY_ID:
-      from_secret: AWS_ACCESS_KEY_ID
-    AWS_SECRET_ACCESS_KEY:
-      from_secret: AWS_SECRET_ACCESS_KEY
-
-- name: artifact
-  image: appleboy/drone-scp
-  settings:
-    command_timeout: 2m
-    host:
-      from_secret: artifact_host
-    key:
-      from_secret: artifact_key
-    source: artifact/*
-    strip_components: 1
-    target: /home/artifact/repo/openvpn/${DRONE_BUILD_NUMBER}-jessie-arm
-    timeout: 2m
-    username: artifact
-  when:
-    status:
-    - failure
-    - success
-
-services:
-- name: device
-  image: syncloud/platform-jessie-arm
-  privileged: true
-  volumes:
-  - name: dbus
-    path: /var/run/dbus
-  - name: dev
-    path: /dev
-
-volumes:
-- name: dbus
-  host:
-    path: /var/run/dbus
-- name: dev
-  host:
-    path: /dev
-- name: shm
-  temp: {}
-
----
-kind: pipeline
-name: arm buster
-
-platform:
-  os: linux
-  arch: arm
-
-steps:
-- name: version
-  image: syncloud/build-deps-arm
-  commands:
-  - echo $(date +%y%m%d)$DRONE_BUILD_NUMBER > version
-  - echo busterarm$DRONE_BRANCH > domain
-
-- name: build
-  image: syncloud/build-deps-arm
-  commands:
-  - VERSION=$(cat version)
-  - ./build.sh openvpn $VERSION
-
-- name: test-intergation
-  image: syncloud/build-deps-arm
-  commands:
-  - pip2 install -r dev_requirements.txt
-  - APP_ARCHIVE_PATH=$(realpath $(cat package.name))
-  - DOMAIN=$(cat domain)
-  - cd integration
-  - py.test -x -s verify.py --domain=$DOMAIN --app-archive-path=$APP_ARCHIVE_PATH --device-host=device --app=openvpn
-
-
-- name: upload
-  image: syncloud/build-deps-arm
-  commands:
-  - VERSION=$(cat version)
-  - PACKAGE=$(cat package.name)
-  - pip2 install -r dev_requirements.txt
-  - syncloud-upload.sh openvpn $DRONE_BRANCH $VERSION $PACKAGE
-  environment:
-    AWS_ACCESS_KEY_ID:
-      from_secret: AWS_ACCESS_KEY_ID
-    AWS_SECRET_ACCESS_KEY:
-      from_secret: AWS_SECRET_ACCESS_KEY
-
-- name: artifact
-  image: appleboy/drone-scp
-  settings:
-    command_timeout: 2m
-    host:
-      from_secret: artifact_host
-    key:
-      from_secret: artifact_key
-    source: artifact/*
-    strip_components: 1
-    target: /home/artifact/repo/openvpn/${DRONE_BUILD_NUMBER}-buster-arm
-    timeout: 2m
-    username: artifact
-  when:
-    status:
-    - failure
-    - success
-
-services:
-- name: device
-  image: syncloud/platform-buster-arm
-  privileged: true
-  volumes:
-  - name: dbus
-    path: /var/run/dbus
-  - name: dev
-    path: /dev
-
-volumes:
-- name: dbus
-  host:
-    path: /var/run/dbus
-- name: dev
-  host:
-    path: /dev
-- name: shm
-  temp: {}
-
----
-kind: pipeline
-name: amd64 jessie
+type: docker
+name: amd64
 
 platform:
   os: linux
@@ -172,71 +9,138 @@ platform:
 
 steps:
 - name: version
-  image: syncloud/build-deps-amd64
+  image: debian:buster-slim
   commands:
-  - echo $(date +%y%m%d)$DRONE_BUILD_NUMBER > version
-  - echo jessieamd64$DRONE_BRANCH > domain
+  - echo $DRONE_BUILD_NUMBER > version
+
+- name: download
+  image: debian:buster-slim
+  commands:
+  - "./download.sh "
 
 - name: build
-  image: syncloud/build-deps-amd64
+  image: gcc:10.4.0-buster
+  commands:
+  - "./build.sh "
+  volumes:
+  - name: docker
+    path: /usr/bin/docker
+  - name: docker.sock
+    path: /var/run/docker.sock
+
+- name: build web
+  image: golang:1.18.2
+  commands:
+  - cd web
+  - ./build.sh
+
+- name: package python
+  image: debian:buster-slim
+  commands:
+  - ./python/build.sh
+  volumes:
+  - name: docker
+    path: /usr/bin/docker
+  - name: docker.sock
+    path: /var/run/docker.sock
+
+- name: package
+  image: debian:buster-slim
   commands:
   - VERSION=$(cat version)
-  - ./build.sh openvpn $VERSION
+  - "./package.sh openvpn $VERSION "
 
-- name: test-intergation
-  image: syncloud/build-deps-amd64
+- name: test-integration-buster
+  image: python:3.8-slim-buster
   commands:
-  - pip2 install -r dev_requirements.txt
   - APP_ARCHIVE_PATH=$(realpath $(cat package.name))
-  - DOMAIN=$(cat domain)
   - cd integration
-  - py.test -x -s verify.py --domain=$DOMAIN --app-archive-path=$APP_ARCHIVE_PATH --device-host=device --app=openvpn
+  - ./deps.sh
+  - py.test -x -s verify.py --distro=buster --domain=buster.com --app-archive-path=$APP_ARCHIVE_PATH --device-host=openvpn.buster.com --app=openvpn --arch=amd64
 
-- name: test-ui
-  image: syncloud/build-deps-amd64
-  commands:
-  - pip2 install -r dev_requirements.txt
-  - DOMAIN=$(cat domain)
-  - cd integration
-  - xvfb-run -l --server-args='-screen 0, 1024x4096x24' py.test -x -s test-ui.py --ui-mode=desktop --domain=$DOMAIN --device-host=device --app=openvpn
-  - xvfb-run -l --server-args='-screen 0, 1024x4096x24' py.test -x -s test-ui.py --ui-mode=mobile --domain=$DOMAIN --device-host=device --app=openvpn
+- name: selenium-video
+  image: selenium/video:ffmpeg-4.3.1-20220208
+  detach: true
+  environment:
+    DISPLAY_CONTAINER_NAME: selenium
+    PRESET: -preset ultrafast -movflags faststart
   volumes:
   - name: shm
     path: /dev/shm
+  - name: videos
+    path: /videos
+
+- name: test-ui-desktop
+  image: python:3.8-slim-buster
+  commands:
+  - apt-get update && apt-get install -y sshpass openssh-client libxml2-dev libxslt-dev build-essential libz-dev curl
+  - cd integration
+  - pip install -r requirements.txt
+  - py.test -x -s test-ui.py --distro=buster --ui-mode=desktop --domain=buster.com --device-host=openvpn.buster.com --app=openvpn --browser=firefox
+
+- name: test-ui-mobile
+  image: python:3.8-slim-buster
+  commands:
+  - apt-get update && apt-get install -y sshpass openssh-client libxml2-dev libxslt-dev build-essential libz-dev curl
+  - cd integration
+  - pip install -r requirements.txt
+  - py.test -x -s test-ui.py --distro=buster --ui-mode=mobile --domain=buster.com --device-host=openvpn.buster.com --app=openvpn --browser=firefox
+
+- name: test-upgrade
+  image: python:3.8-slim-buster
+  commands:
+  - APP_ARCHIVE_PATH=$(realpath $(cat package.name))
+  - cd integration
+  - ./deps.sh
+  - py.test -x -s test-upgrade.py --distro=buster --ui-mode=desktop --domain=buster.com --app-archive-path=$APP_ARCHIVE_PATH --device-host=openvpn.buster.com --app=openvpn --browser=firefox
+  privileged: true
+  volumes:
+  - name: videos
+    path: /videos
 
 - name: upload
-  image: syncloud/build-deps-amd64
+  image: debian:buster-slim
   commands:
-  - VERSION=$(cat version)
   - PACKAGE=$(cat package.name)
-  - pip2 install -r dev_requirements.txt
-  - syncloud-upload.sh openvpn $DRONE_BRANCH $VERSION $PACKAGE
+  - apt update && apt install -y wget
+  - wget https://github.com/syncloud/snapd/releases/download/1/syncloud-release-amd64 -O release --progress=dot:giga
+  - chmod +x release
+  - ./release publish -f $PACKAGE -b $DRONE_BRANCH
   environment:
     AWS_ACCESS_KEY_ID:
       from_secret: AWS_ACCESS_KEY_ID
     AWS_SECRET_ACCESS_KEY:
       from_secret: AWS_SECRET_ACCESS_KEY
+  when:
+    branch:
+    - stable
+    - master
 
 - name: artifact
-  image: appleboy/drone-scp
+  image: appleboy/drone-scp:1.6.2
   settings:
     command_timeout: 2m
     host:
       from_secret: artifact_host
     key:
       from_secret: artifact_key
-    source: artifact/*
+    privileged: true
+    source:
+    - artifact/*
     strip_components: 1
-    target: /home/artifact/repo/openvpn/${DRONE_BUILD_NUMBER}-jessie-amd64
+    target: /home/artifact/repo/openvpn/${DRONE_BUILD_NUMBER}-amd64
     timeout: 2m
     username: artifact
+    volumes:
+    - name: videos
+      path: /drone/src/artifact/videos
   when:
     status:
     - failure
     - success
 
 services:
-- name: device
+- name: openvpn.jessie.com
   image: syncloud/platform-jessie-amd64
   privileged: true
   volumes:
@@ -245,6 +149,23 @@ services:
   - name: dev
     path: /dev
 
+- name: openvpn.buster.com
+  image: syncloud/platform-buster-amd64:22.01
+  privileged: true
+  volumes:
+  - name: dbus
+    path: /var/run/dbus
+  - name: dev
+    path: /dev
+
+- name: selenium
+  image: selenium/standalone-firefox:4.1.2-20220208
+  environment:
+    SE_NODE_SESSION_TIMEOUT: 999999
+  volumes:
+  - name: shm
+    path: /dev/shm
+
 volumes:
 - name: dbus
   host:
@@ -254,83 +175,151 @@ volumes:
     path: /dev
 - name: shm
   temp: {}
+- name: videos
+  temp: {}
+- name: docker
+  host:
+    path: /usr/bin/docker
+- name: docker.sock
+  host:
+    path: /var/run/docker.sock
+
+trigger:
+  event:
+  - push
+  - pull_request
 
 ---
 kind: pipeline
-name: amd64 buster
+type: docker
+name: promote-amd64
 
 platform:
   os: linux
   arch: amd64
 
 steps:
-- name: version
-  image: syncloud/build-deps-amd64
+- name: promote
+  image: debian:buster-slim
   commands:
-  - echo $(date +%y%m%d)$DRONE_BUILD_NUMBER > version
-  - echo busteramd64$DRONE_BRANCH > domain
-
-- name: build
-  image: syncloud/build-deps-amd64
-  commands:
-  - VERSION=$(cat version)
-  - ./build.sh openvpn $VERSION
-
-- name: test-intergation
-  image: syncloud/build-deps-amd64
-  commands:
-  - pip2 install -r dev_requirements.txt
-  - APP_ARCHIVE_PATH=$(realpath $(cat package.name))
-  - DOMAIN=$(cat domain)
-  - cd integration
-  - py.test -x -s verify.py --domain=$DOMAIN --app-archive-path=$APP_ARCHIVE_PATH --device-host=device --app=openvpn
-
-- name: test-ui
-  image: syncloud/build-deps-amd64
-  commands:
-  - pip2 install -r dev_requirements.txt
-  - DOMAIN=$(cat domain)
-  - cd integration
-  - xvfb-run -l --server-args='-screen 0, 1024x4096x24' py.test -x -s test-ui.py --ui-mode=desktop --domain=$DOMAIN --device-host=device --app=openvpn
-  - xvfb-run -l --server-args='-screen 0, 1024x4096x24' py.test -x -s test-ui.py --ui-mode=mobile --domain=$DOMAIN --device-host=device --app=openvpn
-  volumes:
-  - name: shm
-    path: /dev/shm
-
-- name: upload
-  image: syncloud/build-deps-amd64
-  commands:
-  - VERSION=$(cat version)
-  - PACKAGE=$(cat package.name)
-  - pip2 install -r dev_requirements.txt
-  - syncloud-upload.sh openvpn $DRONE_BRANCH $VERSION $PACKAGE
+  - apt update && apt install -y wget
+  - wget https://github.com/syncloud/snapd/releases/download/1/syncloud-release-amd64 -O release --progress=dot:giga
+  - chmod +x release
+  - ./release promote -n openvpn -a $(dpkg --print-architecture)
   environment:
     AWS_ACCESS_KEY_ID:
       from_secret: AWS_ACCESS_KEY_ID
     AWS_SECRET_ACCESS_KEY:
       from_secret: AWS_SECRET_ACCESS_KEY
 
+trigger:
+  event:
+  - promote
+
+---
+kind: pipeline
+type: docker
+name: arm64
+
+platform:
+  os: linux
+  arch: arm64
+
+steps:
+- name: version
+  image: debian:buster-slim
+  commands:
+  - echo $DRONE_BUILD_NUMBER > version
+
+- name: download
+  image: debian:buster-slim
+  commands:
+  - "./download.sh "
+
+- name: build
+  image: gcc:10.4.0-buster
+  commands:
+  - "./build.sh "
+  volumes:
+  - name: docker
+    path: /usr/bin/docker
+  - name: docker.sock
+    path: /var/run/docker.sock
+
+- name: build web
+  image: golang:1.18.2
+  commands:
+  - cd web
+  - ./build.sh
+
+- name: package python
+  image: debian:buster-slim
+  commands:
+  - ./python/build.sh
+  volumes:
+  - name: docker
+    path: /usr/bin/docker
+  - name: docker.sock
+    path: /var/run/docker.sock
+
+- name: package
+  image: debian:buster-slim
+  commands:
+  - VERSION=$(cat version)
+  - "./package.sh openvpn $VERSION "
+
+- name: test-integration-buster
+  image: python:3.8-slim-buster
+  commands:
+  - APP_ARCHIVE_PATH=$(realpath $(cat package.name))
+  - cd integration
+  - ./deps.sh
+  - py.test -x -s verify.py --distro=buster --domain=buster.com --app-archive-path=$APP_ARCHIVE_PATH --device-host=openvpn.buster.com --app=openvpn --arch=arm64
+
+- name: upload
+  image: debian:buster-slim
+  commands:
+  - PACKAGE=$(cat package.name)
+  - apt update && apt install -y wget
+  - wget https://github.com/syncloud/snapd/releases/download/1/syncloud-release-arm64 -O release --progress=dot:giga
+  - chmod +x release
+  - ./release publish -f $PACKAGE -b $DRONE_BRANCH
+  environment:
+    AWS_ACCESS_KEY_ID:
+      from_secret: AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY:
+      from_secret: AWS_SECRET_ACCESS_KEY
+  when:
+    branch:
+    - stable
+    - master
+
 - name: artifact
-  image: appleboy/drone-scp
+  image: appleboy/drone-scp:1.6.2
   settings:
     command_timeout: 2m
     host:
       from_secret: artifact_host
     key:
       from_secret: artifact_key
-    source: artifact/*
+    privileged: true
+    source:
+    - artifact/*
     strip_components: 1
-    target: /home/artifact/repo/openvpn/${DRONE_BUILD_NUMBER}-buster-amd64
+    target: /home/artifact/repo/openvpn/${DRONE_BUILD_NUMBER}-arm64
     timeout: 2m
     username: artifact
+    volumes:
+    - name: videos
+      path: /drone/src/artifact/videos
   when:
     status:
     - failure
     - success
 
 services:
-- name: device
-  image: syncloud/platform-buster-amd64
+- name: openvpn.buster.com
+  image: syncloud/platform-buster-arm64:22.01
   privileged: true
   volumes:
   - name: dbus
@@ -347,5 +336,206 @@ volumes:
     path: /dev
 - name: shm
   temp: {}
+- name: videos
+  temp: {}
+- name: docker
+  host:
+    path: /usr/bin/docker
+- name: docker.sock
+  host:
+    path: /var/run/docker.sock
+
+trigger:
+  event:
+  - push
+  - pull_request
+
+---
+kind: pipeline
+type: docker
+name: promote-arm64
+
+platform:
+  os: linux
+  arch: arm64
+
+steps:
+- name: promote
+  image: debian:buster-slim
+  commands:
+  - apt update && apt install -y wget
+  - wget https://github.com/syncloud/snapd/releases/download/1/syncloud-release-arm64 -O release --progress=dot:giga
+  - chmod +x release
+  - ./release promote -n openvpn -a $(dpkg --print-architecture)
+  environment:
+    AWS_ACCESS_KEY_ID:
+      from_secret: AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY:
+      from_secret: AWS_SECRET_ACCESS_KEY
+
+trigger:
+  event:
+  - promote
+
+---
+kind: pipeline
+type: docker
+name: arm
+
+platform:
+  os: linux
+  arch: arm
+
+steps:
+- name: version
+  image: debian:buster-slim
+  commands:
+  - echo $DRONE_BUILD_NUMBER > version
+
+- name: download
+  image: debian:buster-slim
+  commands:
+  - "./download.sh "
+
+- name: build
+  image: gcc:10.4.0-buster
+  commands:
+  - "./build.sh "
+  volumes:
+  - name: docker
+    path: /usr/bin/docker
+  - name: docker.sock
+    path: /var/run/docker.sock
+
+- name: build web
+  image: golang:1.18.2
+  commands:
+  - cd web
+  - ./build.sh
+
+- name: package python
+  image: debian:buster-slim
+  commands:
+  - ./python/build.sh
+  volumes:
+  - name: docker
+    path: /usr/bin/docker
+  - name: docker.sock
+    path: /var/run/docker.sock
+
+- name: package
+  image: debian:buster-slim
+  commands:
+  - VERSION=$(cat version)
+  - "./package.sh openvpn $VERSION "
+
+- name: test-integration-buster
+  image: python:3.8-slim-buster
+  commands:
+  - APP_ARCHIVE_PATH=$(realpath $(cat package.name))
+  - cd integration
+  - ./deps.sh
+  - py.test -x -s verify.py --distro=buster --domain=buster.com --app-archive-path=$APP_ARCHIVE_PATH --device-host=openvpn.buster.com --app=openvpn --arch=arm
+
+- name: upload
+  image: debian:buster-slim
+  commands:
+  - PACKAGE=$(cat package.name)
+  - apt update && apt install -y wget
+  - wget https://github.com/syncloud/snapd/releases/download/1/syncloud-release-arm -O release --progress=dot:giga
+  - chmod +x release
+  - ./release publish -f $PACKAGE -b $DRONE_BRANCH
+  environment:
+    AWS_ACCESS_KEY_ID:
+      from_secret: AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY:
+      from_secret: AWS_SECRET_ACCESS_KEY
+  when:
+    branch:
+    - stable
+    - master
+
+- name: artifact
+  image: appleboy/drone-scp:1.6.2
+  settings:
+    command_timeout: 2m
+    host:
+      from_secret: artifact_host
+    key:
+      from_secret: artifact_key
+    privileged: true
+    source:
+    - artifact/*
+    strip_components: 1
+    target: /home/artifact/repo/openvpn/${DRONE_BUILD_NUMBER}-arm
+    timeout: 2m
+    username: artifact
+    volumes:
+    - name: videos
+      path: /drone/src/artifact/videos
+  when:
+    status:
+    - failure
+    - success
+
+services:
+- name: openvpn.buster.com
+  image: syncloud/platform-buster-arm:22.01
+  privileged: true
+  volumes:
+  - name: dbus
+    path: /var/run/dbus
+  - name: dev
+    path: /dev
+
+volumes:
+- name: dbus
+  host:
+    path: /var/run/dbus
+- name: dev
+  host:
+    path: /dev
+- name: shm
+  temp: {}
+- name: videos
+  temp: {}
+- name: docker
+  host:
+    path: /usr/bin/docker
+- name: docker.sock
+  host:
+    path: /var/run/docker.sock
+
+trigger:
+  event:
+  - push
+  - pull_request
+
+---
+kind: pipeline
+type: docker
+name: promote-arm
+
+platform:
+  os: linux
+  arch: arm
+
+steps:
+- name: promote
+  image: debian:buster-slim
+  commands:
+  - apt update && apt install -y wget
+  - wget https://github.com/syncloud/snapd/releases/download/1/syncloud-release-arm -O release --progress=dot:giga
+  - chmod +x release
+  - ./release promote -n openvpn -a $(dpkg --print-architecture)
+  environment:
+    AWS_ACCESS_KEY_ID:
+      from_secret: AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY:
+      from_secret: AWS_SECRET_ACCESS_KEY
+
+trigger:
+  event:
+  - promote
 
 ...
