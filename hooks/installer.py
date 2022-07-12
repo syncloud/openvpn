@@ -34,8 +34,9 @@ class Installer:
         self.pki_dir = join(self.snap_data, 'pki')
         self.dh_file = join(self.openvpn_config_dir, 'dh2048.pem')
         self.pki_private_dir = join(self.pki_dir, 'private')
-        self.ca_key_file = join(self.pki_dir, 'ca.key')
-        self.server_key_file = join(self.pki_dir, 'server.key')
+        self.ca_file = join(self.pki_dir, 'ca.crt')
+        self.server_cert_file = join(self.pki_dir, 'issued', 'server.crt')
+        self.server_key_file = join(self.pki_dir, 'private', 'server.key')
         self.server_conf_file = join(self.openvpn_config_dir, 'server.conf')
 
     def install_config(self):
@@ -73,9 +74,10 @@ class Installer:
             shutil.copy(join(self.config_path, 'pki/serial'), self.pki_dir)
         if not os.path.exists(self.dh_file):
             check_output('{0} dhparam -dsaparam -out {1} 2048'.format(self.openssl_bin, self.dh_file), shell=True)
-        if not (os.path.exists(self.ca_key_file) and os.path.exists(self.server_key_file)):
-            if os.path.exists(self.server_conf_file):
-                os.remove(self.server_conf_file)
+        if not os.path.exists(self.ca_file):
+            check_output('sed -i "s#ca .*#ca {0}#g" {1}'.format(self.ca_file, self.server_conf_file), shell=True)
+            check_output('sed -i "s#cert .*#cert {0}#g" {1}'.format(self.server_cert_file, self.server_conf_file), shell=True)
+            check_output('sed -i "s#key .*#key {0}#g" {1}'.format(self.server_key_file, self.server_conf_file), shell=True)
             check_output(self.generate_keys_bin, shell=True)
 
     def fix_permissions(self):
