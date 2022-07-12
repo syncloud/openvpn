@@ -74,7 +74,8 @@ class Installer:
         if not os.path.exists(self.dh_file):
             check_output('{0} dhparam -dsaparam -out {1} 2048'.format(self.openssl_bin, self.dh_file), shell=True)
         if not (os.path.exists(self.ca_key_file) and os.path.exists(self.server_key_file)):
-            os.remove(self.server_conf_file)
+            if os.path.exists(self.server_conf_file):
+                os.remove(self.server_conf_file)
             check_output(self.generate_keys_bin, shell=True)
 
     def fix_permissions(self):
