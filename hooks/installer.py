@@ -74,22 +74,25 @@ class Installer:
             shutil.copy(join(self.config_path, 'pki/serial'), self.pki_dir)
         if not os.path.exists(self.dh_file):
             check_output('{0} dhparam -dsaparam -out {1} 2048'.format(self.openssl_bin, self.dh_file), shell=True)
-        if not os.path.exists(self.ca_file):
-            check_output('sed -i "s#ca .*#ca {0}#g" {1}'.format(self.ca_file, self.server_conf_file), shell=True)
-            check_output('sed -i "s#cert .*#cert {0}#g" {1}'.format(self.server_cert_file, self.server_conf_file), shell=True)
-            check_output('sed -i "s#key .*#key {0}#g" {1}'.format(self.server_key_file, self.server_conf_file), shell=True)
-            check_output(self.generate_keys_bin, shell=True)
-
+        
     def fix_permissions(self):
         fs.chownpath(self.snap_data, USER_NAME, recursive=True)
         fs.chownpath(self.snap_common, USER_NAME, recursive=True)
 
     def install(self):
         self.install_config()
+        check_output(self.generate_keys_bin, shell=True)
         self.fix_permissions()
 
     def post_refresh(self):
         self.install_config()
+
+        if not os.path.exists(self.ca_file):
+            check_output('sed -i "s#ca .*#ca {0}#g" {1}'.format(self.ca_file, self.server_conf_file), shell=True)
+            check_output('sed -i "s#cert .*#cert {0}#g" {1}'.format(self.server_cert_file, self.server_conf_file), shell=True)
+            check_output('sed -i "s#key .*#key {0}#g" {1}'.format(self.server_key_file, self.server_conf_file), shell=True)
+            check_output(self.generate_keys_bin, shell=True)
+
         self.fix_permissions()
 
     def configure(self):
