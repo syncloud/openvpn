@@ -26,19 +26,9 @@ local build(arch, test_ui) = [{
     },
     {
         name: "build",
-        image: "gcc:10.4.0-buster",
+        image: "debian:buster-slim",
         commands: [
             "./build.sh "
-        ],
-        volumes: [
-            {
-                name: "docker",
-                path: "/usr/bin/docker"
-            },
-            {
-               name: "docker.sock",
-               path: "/var/run/docker.sock"
-            }
         ]
     },
     {
@@ -52,19 +42,15 @@ local build(arch, test_ui) = [{
  
     {
         name: "package python",
-        image: "debian:buster-slim",
+        image: "docker:" + dind,
         commands: [
             "./python/build.sh"
         ],
         volumes: [
-            {
-                name: "docker",
-                path: "/usr/bin/docker"
-            },
-            {
-                name: "docker.sock",
-                path: "/var/run/docker.sock"
-            }
+                   {
+                    name: "dockersock",
+                    path: "/var/run"
+                }
         ]
     },
     {
@@ -192,22 +178,18 @@ local build(arch, test_ui) = [{
         "pull_request"
       ]
     },
-    services: ( if arch == "amd64" then [
-        {
-            name: name + ".jessie.com",
-            image: "syncloud/platform-jessie-" + arch,
+    services: [
+       {
+            name: "docker",
+            image: "docker:" + dind,
             privileged: true,
             volumes: [
                 {
-                    name: "dbus",
-                    path: "/var/run/dbus"
-                },
-                {
-                    name: "dev",
-                    path: "/dev"
+                    name: "dockersock",
+                    path: "/var/run"
                 }
             ]
-        }] else []) + [
+        },
         {
             name: name + ".buster.com",
             image: "syncloud/platform-buster-" + arch + ":22.01",
@@ -257,17 +239,9 @@ local build(arch, test_ui) = [{
             name: "videos",
             temp: {}
         },
-        {
-            name: "docker",
-            host: {
-                path: "/usr/bin/docker"
-            }
-        },
-        {
-            name: "docker.sock",
-            host: {
-                path: "/var/run/docker.sock"
-            }
+       {
+            name: "dockersock",
+            temp: {}
         }
     ]
 },
@@ -306,7 +280,6 @@ local build(arch, test_ui) = [{
      }
  }];
 
-build("amd64", true) + 
-build("arm64", false) +
-build("arm", false)
-
+build("amd64", true, "20.10.21-dind") +
+build("arm64", false, "20.10.21-dind") +
+build("arm", false, "19.03.8-dind")
