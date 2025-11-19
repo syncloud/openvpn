@@ -4,6 +4,7 @@ local go = '1.25';
 local nginx = '1.29.3-alpine3.22';
 local debian = 'bookworm-slim';
 local alpine = '3.22.2';
+local gcc = '13.4.0';
 local platform = '25.09';
 local selenium = '4.35.0-20250828';
 local deployer = 'https://github.com/syncloud/store/releases/download/4/syncloud-release';
@@ -51,7 +52,7 @@ local build(arch, test_ui, dind) = [{
              },
     {
         name: "build",
-        image: "gcc:10.4.0-buster",
+        image: "gcc:" + gcc,
         commands: [
             "./build.sh "
         ]
