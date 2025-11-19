@@ -35,6 +35,20 @@ local build(arch, test_ui, dind) = [{
             "./download.sh "
         ]
     },
+ {
+               name: 'nginx',
+               image: 'nginx:' + nginx,
+               commands: [
+                 './nginx/build.sh',
+               ],
+             },
+             {
+               name: 'nginx test',
+               image: 'syncloud/platform-' + distro_default + '-' + arch + ':' + platform,
+               commands: [
+                 './nginx/test.sh',
+               ],
+             },
     {
         name: "build",
         image: "gcc:10.4.0-buster",

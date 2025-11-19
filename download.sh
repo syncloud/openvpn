@@ -15,10 +15,6 @@ apt -y install wget unzip
 
 cd ${DIR}/build
 
-wget --progress=dot:giga ${DOWNLOAD_URL}/nginx/nginx-${ARCH}.tar.gz
-tar xf nginx-${ARCH}.tar.gz
-mv nginx ${BUILD_DIR}
-
 wget https://swupdate.openvpn.org/community/releases/openvpn-${VERSION}.tar.gz  --progress dot:giga -O openvpn-${VERSION}.tar.gz
 tar xzf openvpn-${VERSION}.tar.gz
 rm openvpn-${VERSION}.tar.gz
