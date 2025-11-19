@@ -39,7 +39,7 @@ local build(arch, test_ui, dind) = [{
     },
  {
                name: 'openssl',
-               image: 'alpine/o0enssl:' + openssl,
+               image: 'alpine/openssl:' + openssl,
                commands: [
                  './openssl/build.sh',
                ],
