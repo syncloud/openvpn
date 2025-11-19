@@ -1,5 +1,16 @@
 local name = "openvpn";
 local browser = "firefox";
+local go = '1.25';
+local nginx = '1.29.3-alpine3.22';
+local debian = 'bookworm-slim';
+local alpine = '3.22.2';
+local platform = '25.09';
+local selenium = '4.35.0-20250828';
+local deployer = 'https://github.com/syncloud/store/releases/download/4/syncloud-release';
+local python = '3.12-slim-bookworm';
+local distro_default = 'bookworm';
+local distros = ['bookworm'];
+
 
 local build(arch, test_ui, dind) = [{
     kind: "pipeline",
@@ -12,14 +23,14 @@ local build(arch, test_ui, dind) = [{
     steps: [
     {
         name: "version",
-        image: "debian:buster-slim",
+        image: 'debian:' + debian,
         commands: [
             "echo $DRONE_BUILD_NUMBER > version"
         ]
     },
     {
         name: "download",
-        image: "debian:buster-slim",
+        image: 'debian:' + debian,
         commands: [
             "./download.sh "
         ]
@@ -33,7 +44,7 @@ local build(arch, test_ui, dind) = [{
     },
     {
             name: "build web",
-            image: "golang:1.18.2",
+            image: "golang:" + go,
             commands: [
                 "cd web",
                 "./build.sh"
@@ -55,24 +66,43 @@ local build(arch, test_ui, dind) = [{
     },
     {
         name: "package",
-        image: "debian:buster-slim",
+        image: 'debian:' + debian,
         commands: [
             "VERSION=$(cat version)",
             "./package.sh " + name + " $VERSION "
         ]
-    }
-    ] + [
-    {
-        name: "test-integration-buster",
-        image: "python:3.8-slim-buster",
-        commands: [
-          "APP_ARCHIVE_PATH=$(realpath $(cat package.name))",
-          "cd integration",
-          "./deps.sh",
-          "py.test -x -s verify.py --distro=buster --domain=buster.com --app-archive-path=$APP_ARCHIVE_PATH --device-host=" + name + ".buster.com --app=" + name + " --arch=" + arch
-        ]
-    }] + 
+    },
+     {
+               name: 'test',
+               image: 'python:' + python,
+               commands: [
+                 'cd test',
+                 './deps.sh',
+                 'py.test -x -s test.py --distro=' + distro_default + ' --ver=$DRONE_BUILD_NUMBER --app=' + name,
+               ],
+             }] + 
     ( if test_ui then ([
+{
+            name: "selenium",
+            image: "selenium/standalone-" + browser + ":" + selenium,
+            detach: true,
+            environment: {
+                SE_NODE_SESSION_TIMEOUT: "999999",
+                START_XVFB: "true"
+            },
+               volumes: [{
+                name: "shm",
+                path: "/dev/shm"
+            }],
+            commands: [
+                        'cat /etc/hosts',
+                        'DOMAIN="' + distro_default + '.com"',
+                        'APP_DOMAIN="' + name + '.' + distro_default + '.com"',
+                        'getent hosts $APP_DOMAIN | sed "s/$APP_DOMAIN/auth.$DOMAIN/g" | sudo tee -a /etc/hosts',
+                        'cat /etc/hosts',
+                        '/opt/bin/entry_point.sh',
+                      ],
+         },
     {
         name: "selenium-video",
         image: "selenium/video:ffmpeg-4.3.1-20220208",
@@ -91,37 +121,38 @@ local build(arch, test_ui, dind) = [{
                 path: "/videos"
             }
         ]
-    }] +
-    [{
-        name: "test-ui-" + mode,
-        image: "python:3.8-slim-buster",
-        commands: [
-          "apt-get update && apt-get install -y sshpass openssh-client libxml2-dev libxslt-dev build-essential libz-dev curl",
-          "cd integration",
-          "pip install -r requirements.txt",
-          "py.test -x -s test-ui.py --distro=buster --ui-mode=" + mode + " --domain=buster.com --device-host=" + name + ".buster.com --app=" + name + " --browser=" + browser,
-        ]
-    } for mode in ["desktop", "mobile"] ])
-   else [] ) +
-   ( if arch == "amd64" then [
+    },
     {
-        name: "test-upgrade",
-        image: "python:3.8-slim-buster",
-        commands: [
-          "APP_ARCHIVE_PATH=$(realpath $(cat package.name))",
-          "cd integration",
-          "./deps.sh",
-          "py.test -x -s test-upgrade.py --distro=buster --ui-mode=desktop --domain=buster.com --app-archive-path=$APP_ARCHIVE_PATH --device-host=" + name + ".buster.com --app=" + name + " --browser=" + browser,
-        ],
-        privileged: true,
-        volumes: [{
-            name: "videos",
-            path: "/videos"
-        }]
-    } ] else [] ) + [
+                      name: 'test-ui',
+                      image: 'python:' + python,
+                      commands: [
+                        'cd test',
+                        './deps.sh',
+                        'py.test -x -s ui.py --distro=' + distro_default + ' --ver=$DRONE_BUILD_NUMBER --app=' + name + ' --browser=' + browser,
+                      ],
+                      volumes: [{
+                        name: 'videos',
+                        path: '/videos',
+                      }],
+                    },
+    {
+                name: 'test-upgrade',
+                image: 'python:' + python,
+                commands: [
+                  'cd test',
+                  './deps.sh',
+                  'py.test -x -s upgrade.py --distro=' + distro_default + ' --ver=$DRONE_BUILD_NUMBER --app=' + name + ' --browser=' + browser,
+                ],
+                privileged: true,
+                volumes: [{
+                  name: 'videos',
+                  path: '/videos',
+                }],
+              }
+ ]) else [] ) + [
     {
         name: "upload",
-        image: "debian:buster-slim",
+        image: 'debian:' + debian,
         environment: {
             AWS_ACCESS_KEY_ID: {
                 from_secret: "AWS_ACCESS_KEY_ID"
@@ -191,8 +222,8 @@ local build(arch, test_ui, dind) = [{
             ]
         },
         {
-            name: name + ".buster.com",
-            image: "syncloud/platform-buster-" + arch + ":22.01",
+            name: name + "."+distro_default+".com",
+            image: 'syncloud/platform-' + distro_default + '-' + arch + ':' + platform,
             privileged: true,
             volumes: [
                 {
@@ -205,19 +236,7 @@ local build(arch, test_ui, dind) = [{
                 }
             ]
         }
-    ] + ( if test_ui then [
-        {
-            name: "selenium",
-            image: "selenium/standalone-" + browser + ":4.1.2-20220208",
-            environment: {
-                SE_NODE_SESSION_TIMEOUT: "999999"
-            },
-            volumes: [{
-                name: "shm",
-                path: "/dev/shm"
-            }]
-        }
-    ] else [] ),
+    ],
     volumes: [
         {
             name: "dbus",
@@ -256,7 +275,7 @@ local build(arch, test_ui, dind) = [{
      steps: [
      {
              name: "promote",
-             image: "debian:buster-slim",
+             image: 'debian:' + debian,
              environment: {
                  AWS_ACCESS_KEY_ID: {
                      from_secret: "AWS_ACCESS_KEY_ID"
@@ -283,4 +302,3 @@ local build(arch, test_ui, dind) = [{
 build("amd64", true, "20.10.21-dind") +
 build("arm64", false, "20.10.21-dind") +
 build("arm", false, "19.03.8-dind")
-
