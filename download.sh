@@ -2,8 +2,8 @@
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd ${DIR}
-VERSION=2.4.8
-EASY_RSA_VERSION=3.0.7
+VERSION=2.6.16
+EASY_RSA_VERSION=3.2.4
 
 ARCH=$(uname -m)
 DOWNLOAD_URL=https://github.com/syncloud/3rdparty/releases/download
@@ -23,7 +23,3 @@ wget --progress=dot:giga https://github.com/OpenVPN/easy-rsa/releases/download/v
 tar xf EasyRSA-${EASY_RSA_VERSION}.tgz
 mv EasyRSA-${EASY_RSA_VERSION} ${BUILD_DIR}/easyrsa
 cp -r ${DIR}/config/easyrsa/vars ${BUILD_DIR}/easyrsa
-
-wget --progress=dot:giga ${DOWNLOAD_URL}/openssl/openssl-${ARCH}.tar.gz
-tar xf openssl-${ARCH}.tar.gz
-mv openssl ${BUILD_DIR}

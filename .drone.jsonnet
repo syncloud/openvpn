@@ -5,6 +5,7 @@ local nginx = '1.29.3-alpine3.22';
 local debian = 'bookworm-slim';
 local alpine = '3.22.2';
 local gcc = '13.4.0';
+local openssl = '3.1.4';
 local platform = '25.09';
 local selenium = '4.35.0-20250828';
 local deployer = 'https://github.com/syncloud/store/releases/download/4/syncloud-release';
@@ -36,6 +37,20 @@ local build(arch, test_ui, dind) = [{
             "./download.sh "
         ]
     },
+ {
+               name: 'openssl',
+               image: 'alpine/o0enssl:' + openssl,
+               commands: [
+                 './openssl/build.sh',
+               ],
+             },
+             {
+               name: 'openssl test',
+               image: 'syncloud/platform-' + distro_default + '-' + arch + ':' + platform,
+               commands: [
+                 './openssl/test.sh',
+               ],
+             },
  {
                name: 'nginx',
                image: 'nginx:' + nginx,
