@@ -12,7 +12,7 @@ apt -y install \
   unzip
 
 mkdir -p ${DIR}/../build
-wget --progress=dot:giga https://github.com/OpenVPN/easy-rsa/releases/download/v${EASY_RSA_VERSION}/EasyRSA-${EASY_RSA_VERSION}.tgz
-tar xf EasyRSA-${EASY_RSA_VERSION}.tgz
-mv EasyRSA-${EASY_RSA_VERSION} ${BUILD_DIR}/easyrsa
+wget --progress=dot:giga https://github.com/OpenVPN/easy-rsa/releases/download/v${VERSION}/EasyRSA-${VERSION}.tgz
+tar xf EasyRSA-${VERSION}.tgz
+mv EasyRSA-${VERSION} ${BUILD_DIR}/easyrsa
 cp -r ${DIR}/../config/easyrsa/vars ${BUILD_DIR}/easyrsa
