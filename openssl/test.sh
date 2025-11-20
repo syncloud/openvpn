@@ -5,4 +5,3 @@ cd ${DIR}
 
 BUILD_DIR=${DIR}/../build/snap/openssl
 ${BUILD_DIR}/bin/openssl
-version
