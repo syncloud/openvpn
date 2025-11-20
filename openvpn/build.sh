@@ -5,7 +5,6 @@ cd ${DIR}
 
 BUILD_DIR=${DIR}/../build/snap/openvpn
 VERSION=$1
-EASY_RSA_VERSION=$2
 
 apt update
 apt -y install \
@@ -17,12 +16,6 @@ apt -y install \
   liblz4-dev \
   wget \
   unzip
-
-mkdir -p ${DIR}/../build
-wget --progress=dot:giga https://github.com/OpenVPN/easy-rsa/releases/download/v${EASY_RSA_VERSION}/EasyRSA-${EASY_RSA_VERSION}.tgz
-tar xf EasyRSA-${EASY_RSA_VERSION}.tgz
-mv EasyRSA-${EASY_RSA_VERSION} ${BUILD_DIR}/easyrsa
-cp -r ${DIR}/../config/easyrsa/vars ${BUILD_DIR}/easyrsa
 
 cd BUILD_DIR=${DIR}/../build
 wget https://swupdate.openvpn.org/community/releases/openvpn-${VERSION}.tar.gz  --progress dot:giga -O openvpn-${VERSION}.tar.gz

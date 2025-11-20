@@ -59,10 +59,24 @@ local build(arch, test_ui, dind) = [
                ],
              },
              {
+               name: 'easyrsa',
+               image: 'debian:' + debian,
+               commands: [
+                 './easyrsa/build.sh ' + easyrsa,
+               ],
+             },
+             {
+               name: 'easyrsa test',
+               image: 'syncloud/platform-' + distro_default + '-' + arch + ':' + platform,
+               commands: [
+                 './easyrsa/test.sh',
+               ],
+             },
+             {
                name: 'openvpn',
                image: 'gcc:' + gcc,
                commands: [
-                 './openvpn/build.sh ' + openvpn + ' ' + easyrsa,
+                 './openvpn/build.sh ' + openvpn,
                ],
              },
              {
