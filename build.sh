@@ -7,7 +7,7 @@ PREFIX=${DIR}/build/snap/openvpn
 NAME=openvpn
 
 apt update
-apt -y install liblzo2-dev libpam-dev net-tools libnl-genl-3.0
+apt -y install liblzo2-dev libpam-dev net-tools libnl-genl-3-dev
 
 cd ${DIR}/build/openvpn-*
 ./configure --prefix=${PREFIX}
