@@ -1,7 +1,7 @@
 apps:
   web:
     user: openvpn
-    command: bin/service.web.sh start
+    command: bin/service.web.sh
     daemon: simple
     plugs:
     - network
@@ -9,7 +9,7 @@ apps:
     restart-condition: always
     start-timeout: 600s
   server:
-    command: bin/service.server.sh start
+    command: bin/service.server.sh
     daemon: forking
     plugs:
     - network
