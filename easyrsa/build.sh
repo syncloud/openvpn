@@ -4,6 +4,7 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd ${DIR}
 
 BUILD_DIR=${DIR}/../build/snap/easyrsa
+mkdir -p ${BUILD_DIR}
 VERSION=$1
 
 apt update
