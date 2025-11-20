@@ -20,6 +20,7 @@ apt -y install \
 cd ${DIR}/../build
 wget https://swupdate.openvpn.org/community/releases/openvpn-${VERSION}.tar.gz  --progress dot:giga -O openvpn-${VERSION}.tar.gz
 tar xzf openvpn-${VERSION}.tar.gz
+rm openvpn-${VERSION}.tar.gz
 cd openvpn-*
 ./configure --prefix=${BUILD_DIR}
 make
