@@ -27,6 +27,7 @@ make
 make install
 
 export LD_LIBRARY_PATH=${BUILD_DIR}/lib
+mkdir -p ${BUILD_DIR}/lib
 cp /lib/*/liblzo2.so* ${BUILD_DIR}/lib
 cp /lib/*/liblz4.so* ${BUILD_DIR}/lib
 cp /lib/*/libnl-genl-3.so* ${BUILD_DIR}/lib
