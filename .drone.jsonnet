@@ -31,13 +31,6 @@ local build(arch, test_ui, dind) = [
                ],
              },
              {
-               name: 'download',
-               image: 'debian:' + debian,
-               commands: [
-                 './download.sh ',
-               ],
-             },
-             {
                name: 'openssl',
                image: 'alpine/openssl:' + openssl,
                commands: [
