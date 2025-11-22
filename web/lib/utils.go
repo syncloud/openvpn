@@ -8,7 +8,7 @@ import (
 	"github.com/astaxie/beego/validation"
 )
 
-//CreateValidationMap ranslates validation structure to map
+// CreateValidationMap ranslates validation structure to map
 // that can be easly presented in template
 func CreateValidationMap(valid validation.Validation) map[string]map[string]string {
 	v := make(map[string]map[string]string)
@@ -43,7 +43,7 @@ func CreateValidationMap(valid validation.Validation) map[string]map[string]stri
 
 }
 
-//Dump any structure as json string
+// Dump any structure as json string
 func Dump(obj interface{}) {
 	result, _ := json.MarshalIndent(obj, "", "\t")
 	beego.Debug(string(result))

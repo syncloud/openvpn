@@ -23,7 +23,7 @@ type Settings struct {
 	Updated time.Time `orm:"auto_now;type(datetime)"`
 }
 
-//Insert wrapper
+// Insert wrapper
 func (s *Settings) Insert() error {
 	if _, err := orm.NewOrm().Insert(s); err != nil {
 		return err
@@ -31,7 +31,7 @@ func (s *Settings) Insert() error {
 	return nil
 }
 
-//Read wrapper
+// Read wrapper
 func (s *Settings) Read(fields ...string) error {
 	if err := orm.NewOrm().Read(s, fields...); err != nil {
 		return err
@@ -39,7 +39,7 @@ func (s *Settings) Read(fields ...string) error {
 	return nil
 }
 
-//Update wrapper
+// Update wrapper
 func (s *Settings) Update(fields ...string) error {
 	if _, err := orm.NewOrm().Update(s, fields...); err != nil {
 		return err
@@ -47,7 +47,7 @@ func (s *Settings) Update(fields ...string) error {
 	return nil
 }
 
-//Delete wrapper
+// Delete wrapper
 func (s *Settings) Delete() error {
 	if _, err := orm.NewOrm().Delete(s); err != nil {
 		return err

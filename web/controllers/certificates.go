@@ -169,6 +169,6 @@ func SaveToFile(tplPath string, c config.Config, destPath string) error {
 	if err != nil {
 		return err
 	}
-
+	beego.Info("write file", destPath)
 	return ioutil.WriteFile(destPath, []byte(str), 0644)
 }
