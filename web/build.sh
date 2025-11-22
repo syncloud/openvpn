@@ -5,4 +5,4 @@ cd ${DIR}
 
 BUILD_DIR=${DIR}/../build/snap
 mkdir ${BUILD_DIR}/web
-CGO_ENABLED=0 go build -o ${BUILD_DIR}/web/openvpn-web-ui 
+go build -o ${BUILD_DIR}/web/openvpn-web-ui 
