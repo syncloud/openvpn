@@ -4,7 +4,7 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )
 
 CONFIG_DIR=${SNAP_DATA}/openvpn
 SERVER_CONF=${CONFIG_DIR}/server.conf
-export LD_LIBRARY_PATH=${DIR}/openvpn/lib
+
 mkdir -p /dev/net
 if [ ! -c /dev/net/tun ]; then
   mknod /dev/net/tun c 10 200
