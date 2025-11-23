@@ -2,7 +2,7 @@
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )
 
-CONFIG_DIR=${SNAP_DATA}/openvpn
+CONFIG_DIR=/var/snap/openvpn/current/openvpn
 SERVER_CONF=${CONFIG_DIR}/server.conf
 
 mkdir -p /dev/net
