@@ -87,14 +87,20 @@ local build(arch, test_ui, dind) = [
                ],
              },
              {
-               name: 'build web',
+               name: 'web',
                image: 'golang:' + go,
                commands: [
                  'cd web',
                  './build.sh',
                ],
              },
-
+     {
+               name: 'web test',
+               image: 'syncloud/platform-' + distro_default + '-' + arch + ':' + platform,
+               commands: [
+                 './web/test.sh',
+               ],
+             },
              {
                name: 'package python',
                image: 'docker:' + dind,
