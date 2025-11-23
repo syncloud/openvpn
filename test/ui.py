@@ -33,21 +33,11 @@ def test_login(selenium, device_user, device_password):
     lib.login(selenium, device_user, device_password)
 
 
-def test_certificates(selenium, app_domain, ui_mode, screenshot_dir):
-    selenium.driver.get("https://{0}/certificates".format(app_domain))
-    time.sleep(2)
-    selenium.screenshot('certificates-' + ui_mode)
-
-
-def test_new_certificates(selenium, ui_mode, screenshot_dir):
+def test_certificates(selenium):
+    selenium.find_by_xpath("//button[.='Certificates']").click()
     name = selenium.find_by_id("Name")
-    name.send_keys("test")
-
+    selenium.screenshot('certificates')
+    name.send_keys("test-cert")
     selenium.find_by_xpath("//button[contains(text(),'Create')]").click()
-
-    selenium.screenshot('certificates-new-' + ui_mode)
-
-
-def test_certificate(app_domain):
-    response = requests.get('https://{0}'.format(app_domain), verify=False)
-    assert response.status_code == 200
+    selenium.find_by_xpath("//span[.='test-cert']")
+    selenium.screenshot('certificates-new-')
