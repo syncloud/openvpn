@@ -101,6 +101,13 @@ local build(arch, test_ui, dind) = [
                  './web/test.sh',
                ],
              },
+{
+               name: 'web test old',
+               image: 'debian:buster-slim',
+               commands: [
+                 './web/test.sh',
+               ],
+             },
              {
                name: 'package python',
                image: 'docker:' + dind,
