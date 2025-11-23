@@ -1,7 +1,7 @@
 import time
 from os.path import dirname
 from subprocess import check_output
-from integration.lib import login
+from test import lib
 import pytest
 import requests
 from syncloudlib.integration.hosts import add_host_alias
@@ -30,28 +30,24 @@ def test_start(module_setup, app, domain, device_host):
 
 
 def test_login(selenium, device_user, device_password):
-    login(selenium, device_user, device_password)
+    lib.login(selenium, device_user, device_password)
 
 
-def test_certificates(driver, app_domain, ui_mode, screenshot_dir):
-    driver.get("https://{0}/certificates".format(app_domain))
+def test_certificates(selenium, app_domain, ui_mode, screenshot_dir):
+    selenium.driver.get("https://{0}/certificates".format(app_domain))
     time.sleep(2)
-    screenshots(driver, screenshot_dir, 'certificates-' + ui_mode)
+    selenium.screenshot('certificates-' + ui_mode)
 
 
-def test_new_certificates(driver, ui_mode, screenshot_dir):
-    name = driver.find_element_by_id("Name")
+def test_new_certificates(selenium, ui_mode, screenshot_dir):
+    name = selenium.find_by_id("Name")
     name.send_keys("test")
 
-    driver.find_element_by_xpath("//button[contains(text(),'Create')]").click()
+    selenium.find_by_xpath("//button[contains(text(),'Create')]").click()
 
-    screenshots(driver, screenshot_dir, 'certificates-new-' + ui_mode)
+    selenium.screenshot('certificates-new-' + ui_mode)
 
 
 def test_certificate(app_domain):
     response = requests.get('https://{0}'.format(app_domain), verify=False)
     assert response.status_code == 200
-
-
-def test_teardown(driver):
-    driver.quit()
