@@ -39,5 +39,5 @@ def test_certificates(selenium):
     selenium.screenshot('certificates')
     name.send_keys("test-cert")
     selenium.find_by_xpath("//button[contains(text(),'Create')]").click()
-    selenium.find_by_xpath("//span[.='test-cert']")
-    selenium.screenshot('certificates-new-')
+    selenium.find_by_xpath("//a[contains(.,'test-cert')]")
+    selenium.screenshot('certificates-new')
