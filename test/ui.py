@@ -34,7 +34,7 @@ def test_login(selenium, device_user, device_password):
 
 
 def test_certificates(selenium):
-    selenium.find_by_xpath("//button[.='Certificates']").click()
+    selenium.find_by_xpath("//a[.='Certificates']").click()
     name = selenium.find_by_id("Name")
     selenium.screenshot('certificates')
     name.send_keys("test-cert")
