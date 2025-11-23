@@ -8,6 +8,8 @@ apps:
     - network-bind
     restart-condition: always
     start-timeout: 600s
+    restart-delay: 10s
+    before: [server]
   server:
     command: bin/service.server.sh
     daemon: forking
@@ -16,6 +18,7 @@ apps:
     - network-bind
     restart-condition: always
     start-timeout: 600s
+    restart-delay: 10s
   nginx:
     user: openvpn
     command: bin/service.nginx.sh
@@ -25,7 +28,8 @@ apps:
     - network-bind
     restart-condition: always
     start-timeout: 600s
-    
+    restart-delay: 10s
+
 confinement: strict
 description: OpenVPN
 grade: stable

@@ -2,7 +2,7 @@
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )
 
-export CONFIG_DIR=${SNAP_DATA}/config/web
-echo "${CONFIG_DIR}" | logger -t openvpn-web
+export CONFIG_DIR=/var/snap/openvon/current/config/web
+echo "${CONFIG_DIR}"
 cd $DIR/web
-exec ./openvpn-web-ui --config=${CONFIG_DIR}  | logger -t openvpn-web
+exec ./openvpn-web-ui --config=${CONFIG_DIR}
