@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/adamwalach/openvpn-web-ui/state"
 
-	mi "github.com/adamwalach/go-openvpn/server/mi"
+	mi "github.com/adamwalach/openvpn-web-ui/server/mi"
 )
 
 // APISignalController sends signals to OpenVPN daemon

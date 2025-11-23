@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/adamwalach/go-openvpn/server/config"
+	"github.com/adamwalach/openvpn-web-ui/server/config"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"gopkg.in/hlandau/passlib.v1"

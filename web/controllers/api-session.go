@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/adamwalach/openvpn-web-ui/state"
 
-	"github.com/adamwalach/go-openvpn/server/mi"
+	"github.com/adamwalach/openvpn-web-ui/server/mi"
 )
 
 // APISessionController manages vpn sessions

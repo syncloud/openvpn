@@ -3,7 +3,7 @@ package controllers
 import (
 	"bytes"
 	"fmt"
-	"github.com/adamwalach/go-openvpn/client/config"
+	"github.com/adamwalach/openvpn-web-ui/client/config"
 	"github.com/adamwalach/openvpn-web-ui/lib"
 	"github.com/adamwalach/openvpn-web-ui/models"
 	"github.com/adamwalach/openvpn-web-ui/state"
