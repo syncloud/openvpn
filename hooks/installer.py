@@ -34,6 +34,7 @@ class Installer:
         self.pki_dir = join(self.snap_data, 'pki')
         self.dh_file = join(self.openvpn_config_dir, 'dh2048.pem')
         self.pki_private_dir = join(self.pki_dir, 'private')
+        self.pki_issued_dir = join(self.pki_dir, 'issued')
         self.ca_file = join(self.pki_dir, 'ca.crt')
         self.server_cert_file = join(self.pki_dir, 'issued', 'server.crt')
         self.server_key_file = join(self.pki_dir, 'private', 'server.key')
@@ -50,6 +51,7 @@ class Installer:
         fs.makepath(self.openvpn_config_dir)
         fs.makepath(self.pki_dir)
         fs.makepath(self.pki_private_dir)
+        fs.makepath(self.pki_issued_dir)
         fs.makepath(join(self.pki_dir, 'reqs'))
 
         if os.path.lexists(self.prefix_delegation_link):

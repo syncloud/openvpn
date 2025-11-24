@@ -7,7 +7,7 @@ import (
 	sigar "github.com/cloudfoundry/gosigar"
 )
 
-//SystemInfo contains basic information about system load
+// SystemInfo contains basic information about system load
 type SystemInfo struct {
 	Memory      sigar.Mem
 	Swap        sigar.Swap
@@ -20,7 +20,7 @@ type SystemInfo struct {
 	CurrentTime time.Time
 }
 
-//GetSystemInfo returns short info about system load
+// GetSystemInfo returns short info about system load
 func GetSystemInfo() SystemInfo {
 	s := SystemInfo{}
 

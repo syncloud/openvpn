@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/adamwalach/go-openvpn/server/config"
+	"github.com/adamwalach/openvpn-web-ui/server/config"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"gopkg.in/hlandau/passlib.v1"
@@ -108,6 +108,7 @@ func CreateDefaultOVConfig(configDir string, ovConfigPath string, address string
 			beego.Debug(c)
 		}
 		serverConfig := filepath.Join(ovConfigPath, "server.conf")
+		beego.Info("check server config", serverConfig)
 		if _, err = os.Stat(serverConfig); os.IsNotExist(err) {
 			if err = config.SaveToFile(filepath.Join(configDir, "openvpn-server-config.tpl"), c.Config, serverConfig); err != nil {
 				beego.Error(err)

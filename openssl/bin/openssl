@@ -1,0 +1,7 @@
+#!/bin/sh -e
+DIR=$( cd "$( dirname "$0" )" && cd .. && pwd )
+LIBS=${DIR}/lib
+${DIR}/lib/ld-*.so* \
+  --library-path $LIBS \
+  ${DIR}/usr/bin/openssl \
+  "$@"

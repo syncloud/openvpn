@@ -3,7 +3,7 @@ package controllers
 import (
 	"bytes"
 	"fmt"
-	"github.com/adamwalach/go-openvpn/client/config"
+	"github.com/adamwalach/openvpn-web-ui/client/config"
 	"github.com/adamwalach/openvpn-web-ui/lib"
 	"github.com/adamwalach/openvpn-web-ui/models"
 	"github.com/adamwalach/openvpn-web-ui/state"
@@ -169,6 +169,6 @@ func SaveToFile(tplPath string, c config.Config, destPath string) error {
 	if err != nil {
 		return err
 	}
-
+	beego.Info("write file", destPath)
 	return ioutil.WriteFile(destPath, []byte(str), 0644)
 }

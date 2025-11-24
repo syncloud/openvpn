@@ -37,5 +37,7 @@ func main() {
 	routers.Init(*configDir)
 
 	lib.AddFuncMaps()
+	beego.SetLogger("console", "")
+
 	beego.Run()
 }

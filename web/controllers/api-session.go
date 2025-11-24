@@ -4,15 +4,15 @@ import (
 	"encoding/json"
 	"github.com/adamwalach/openvpn-web-ui/state"
 
-	"github.com/adamwalach/go-openvpn/server/mi"
+	"github.com/adamwalach/openvpn-web-ui/server/mi"
 )
 
-//APISessionController manages vpn sessions
+// APISessionController manages vpn sessions
 type APISessionController struct {
 	APIBaseController
 }
 
-//KillParams contains CommonName of session to kill
+// KillParams contains CommonName of session to kill
 type KillParams struct {
 	Cname string `json:"cname"`
 }

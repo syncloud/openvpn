@@ -2,7 +2,7 @@ package controllers
 
 import "github.com/adamwalach/openvpn-web-ui/lib"
 
-//APISysloadController provides system information
+// APISysloadController provides system information
 type APISysloadController struct {
 	APIBaseController
 }

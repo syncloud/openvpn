@@ -5,10 +5,10 @@ import (
 	"html/template"
 	"path/filepath"
 
-	"github.com/adamwalach/go-openvpn/server/config"
-	mi "github.com/adamwalach/go-openvpn/server/mi"
 	"github.com/adamwalach/openvpn-web-ui/lib"
 	"github.com/adamwalach/openvpn-web-ui/models"
+	"github.com/adamwalach/openvpn-web-ui/server/config"
+	mi "github.com/adamwalach/openvpn-web-ui/server/mi"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 )

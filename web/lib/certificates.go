@@ -10,8 +10,8 @@ import (
 	"time"
 )
 
-//Cert
-//https://groups.google.com/d/msg/mailing.openssl.users/gMRbePiuwV0/wTASgPhuPzkJ
+// Cert
+// https://groups.google.com/d/msg/mailing.openssl.users/gMRbePiuwV0/wTASgPhuPzkJ
 type Cert struct {
 	EntryType   string
 	Expiration  string

@@ -21,8 +21,6 @@ def module_setup(request, device, data_dir, platform_data_dir, app_dir, log_dir,
         device.run_ssh('ps auxfw > {0}/ps.log'.format(TMP_DIR), throw=False)
         device.run_ssh('netstat -nlp > {0}/netstat.log'.format(TMP_DIR), throw=False)
         device.run_ssh('journalctl > {0}/journalctl.log'.format(TMP_DIR), throw=False)
-        device.run_ssh('cp /var/log/syslog {0}/syslog.log'.format(TMP_DIR), throw=False)
-        device.run_ssh('cp /var/log/messages {0}/messages.log'.format(TMP_DIR), throw=False)
         device.run_ssh('ls -la /snap > {0}/snap.ls.log'.format(TMP_DIR), throw=False)
         device.run_ssh('ls -la {0}/ > {1}/app.ls.log'.format(app_dir, TMP_DIR), throw=False)
         device.run_ssh('ls -la {0}/ > {1}/data.ls.log'.format(snap_data_dir, TMP_DIR), throw=False)
@@ -32,7 +30,8 @@ def module_setup(request, device, data_dir, platform_data_dir, app_dir, log_dir,
         device.run_ssh('ls -la {0}/config/ > {1}/app.config.ls.log'.format(app_dir, TMP_DIR), throw=False)
         device.run_ssh('ls -la {0}/config/ > {1}/data.config.ls.log'.format(snap_data_dir, TMP_DIR), throw=False)
         device.run_ssh('ls -la {0}/openvpn > {1}/data.config.openvpn.ls.log'.format(snap_data_dir, TMP_DIR), throw=False)
-
+        device.run_ssh('nft list table ip nat > {0}/ip.table.log'.format(TMP_DIR), throw=False)
+        device.run_ssh('nft list chain ip nat POSTROUTING > {0}/ip.chain.log'.format(TMP_DIR), throw=False)
         device.scp_from_device('{0}/log/*.log'.format(data_dir), artifact_dir)
         device.scp_from_device('{0}/*'.format(TMP_DIR), artifact_dir)
         check_output('chmod -R a+r {0}'.format(artifact_dir), shell=True)
@@ -65,6 +64,10 @@ def test_prefix_delegation(device):
 
 def test_upgrade(app_archive_path, device_host, device_password):
     local_install(device_host, device_password, app_archive_path)
+
+
+def test_rules(device):
+    assert 1 == int(device.run_ssh('nft list chain ip nat POSTROUTING| grep masquerade | wc -l'))
 
 
 def test_remove(device, app):

@@ -8,7 +8,7 @@ import (
 	"github.com/astaxie/beego"
 )
 
-//AddFuncMaps .
+// AddFuncMaps .
 func AddFuncMaps() {
 	_ = beego.AddFuncMap("field_error_message", func(v map[string]map[string]string, key string) map[string]string {
 		if val, ok := v[key]; ok {
