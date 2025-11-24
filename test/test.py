@@ -59,7 +59,7 @@ def test_index(app_domain):
 
 
 def test_rules(device):
-    assert 1 == int(device.run_ssh('nft list chain ip nat POSTROUTING| grep 'masquerade' | wc -l'))
+    assert 1 == int(device.run_ssh('nft list chain ip nat POSTROUTING| grep masquerade | wc -l'))
 
 
 def test_prefix_delegation(device):
