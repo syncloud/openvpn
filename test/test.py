@@ -58,6 +58,10 @@ def test_index(app_domain):
     assert response.status_code == 200, response.text
 
 
+def test_rules(device):
+    assert 1 == int(device.run_ssh('nft list chain ip nat POSTROUTING| grep 'masquerade' | wc -l'))
+
+
 def test_prefix_delegation(device):
     device.run_ssh('/snap/openvpn/current/bin/prefix_delegation.sh', env_vars='reason=BOUND6 new_ip6_prefix=111:222:333::/64')
 
