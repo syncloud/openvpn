@@ -31,7 +31,7 @@ apps:
     restart-delay: 10s
 
 confinement: strict
-description: OpenVPN
+description: Secure connection to your Syncloud device over the Internet
 grade: stable
 name: openvpn
 summary: OpenVPN
