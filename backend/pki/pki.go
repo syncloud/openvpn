@@ -54,11 +54,11 @@ func ValidName(name string) bool {
 	return nameRegexp.MatchString(name) && name != ServerName
 }
 
-func (p *PKI) CaCertPath() string     { return path.Join(p.Dir, "ca.crt") }
-func (p *PKI) CaKeyPath() string      { return path.Join(p.Dir, "private", "ca.key") }
-func (p *PKI) CrlPath() string        { return path.Join(p.Dir, "crl.pem") }
-func (p *PKI) IndexPath() string      { return path.Join(p.Dir, "index.txt") }
-func (p *PKI) SerialPath() string     { return path.Join(p.Dir, "serial") }
+func (p *PKI) CaCertPath() string       { return path.Join(p.Dir, "ca.crt") }
+func (p *PKI) CaKeyPath() string        { return path.Join(p.Dir, "private", "ca.key") }
+func (p *PKI) CrlPath() string          { return path.Join(p.Dir, "crl.pem") }
+func (p *PKI) IndexPath() string        { return path.Join(p.Dir, "index.txt") }
+func (p *PKI) SerialPath() string       { return path.Join(p.Dir, "serial") }
 func (p *PKI) CertPath(n string) string { return path.Join(p.Dir, "issued", n+".crt") }
 func (p *PKI) KeyPath(n string) string  { return path.Join(p.Dir, "private", n+".key") }
 
@@ -74,7 +74,22 @@ func (p *PKI) Init() error {
 	if err := p.ensureServer(); err != nil {
 		return fmt.Errorf("ensure server cert: %w", err)
 	}
+	if !p.CRLSupported() {
+		return nil
+	}
 	return p.WriteCRL()
+}
+
+// A CA issued by an older easy-rsa profile may lack the cRLSign key usage, and
+// crypto/x509 refuses to sign a CRL with it. Revocation is then unavailable,
+// but the tunnel must still come up, so crl-verify is left out of server.conf
+// rather than pointing at a file that will never exist.
+func (p *PKI) CRLSupported() bool {
+	cert, err := p.readCert(p.CaCertPath())
+	if err != nil {
+		return false
+	}
+	return cert.KeyUsage&x509.KeyUsageCRLSign != 0
 }
 
 func (p *PKI) ensureCA() error {
@@ -233,6 +248,9 @@ func (p *PKI) Revoke(name string) error {
 
 	_ = os.Remove(p.CertPath(name))
 	_ = os.Remove(p.KeyPath(name))
+	if !p.CRLSupported() {
+		return nil
+	}
 	return p.WriteCRL()
 }
 

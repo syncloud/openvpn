@@ -41,6 +41,7 @@ def test_start(module_setup, device, app, domain, device_host):
 def test_install_released(device, app):
     device.run_ssh('snap remove {0}'.format(app), throw=False)
     device.run_ssh('snap install {0}'.format(app), retries=10)
+    device.run_ssh('test -f {0}/pki/ca.crt'.format(DATA_DIR), retries=100)
 
 
 def test_released_creates_client(device, released_state):

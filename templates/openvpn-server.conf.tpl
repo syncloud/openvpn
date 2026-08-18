@@ -11,7 +11,8 @@ server 10.8.0.0 255.255.255.0
 ca {{ .CaCert }}
 cert {{ .ServerCert }}
 key {{ .ServerKey }}
-crl-verify {{ .Crl }}
+{{ if .Crl }}crl-verify {{ .Crl }}
+{{ end }}
 
 data-ciphers {{ .DataCiphers }}
 auth {{ .Auth }}

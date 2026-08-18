@@ -92,10 +92,7 @@ local build(arch, test_ui) = [{
            name: 'e2e',
            image: playwright,
            commands: ['./ci/ui.sh desktop ' + name + ' ' + distro_default + ' specs/01-smoke.spec.ts'],
-           environment: {
-             DEVICE_USER: { from_secret: 'device_user' },
-             DEVICE_PASSWORD: { from_secret: 'device_password' },
-           },
+           environment: { DEVICE_USER: 'user', DEVICE_PASSWORD: 'Password1' },
          },
          {
            name: 'test-upgrade',
@@ -106,10 +103,7 @@ local build(arch, test_ui) = [{
            name: 'e2e-after-upgrade',
            image: playwright,
            commands: ['./ci/ui.sh desktop ' + name + ' ' + distro_default + ' specs/02-post-upgrade.spec.ts'],
-           environment: {
-             DEVICE_USER: { from_secret: 'device_user' },
-             DEVICE_PASSWORD: { from_secret: 'device_password' },
-           },
+           environment: { DEVICE_USER: 'user', DEVICE_PASSWORD: 'Password1' },
          },
        ] else []) + [
     {

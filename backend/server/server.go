@@ -80,6 +80,10 @@ func (s *Service) Apply(settings Settings) error {
 }
 
 func (s *Service) renderServerConf(settings Settings) error {
+	crl := ""
+	if s.PKI.CRLSupported() {
+		crl = s.PKI.CrlPath()
+	}
 	rendered, err := s.render("openvpn-server.conf.tpl", serverVariables{
 		ManagementSocket:    s.ManagementSocket,
 		Port:                settings.Port,
@@ -87,7 +91,7 @@ func (s *Service) renderServerConf(settings Settings) error {
 		CaCert:              s.PKI.CaCertPath(),
 		ServerCert:          s.PKI.CertPath(pki.ServerName),
 		ServerKey:           s.PKI.KeyPath(pki.ServerName),
-		Crl:                 s.PKI.CrlPath(),
+		Crl:                 crl,
 		DataCiphers:         settings.DataCiphers,
 		Auth:                settings.Auth,
 		IfconfigPoolPersist: path.Join(s.OpenvpnDir, "ipp.txt"),

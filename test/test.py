@@ -28,6 +28,7 @@ def module_setup(request, device, data_dir, platform_data_dir, app_dir, artifact
         device.run_ssh('cat {0}/openvpn/server.conf > {1}/server.conf'.format(snap_data_dir, TMP_DIR),
                        throw=False)
         device.run_ssh('nft list table ip nat > {0}/nft.log'.format(TMP_DIR), throw=False)
+        device.run_ssh('iptables -t nat -S > {0}/iptables.log'.format(TMP_DIR), throw=False)
         device.scp_from_device('{0}/*'.format(TMP_DIR), artifact_dir)
         check_output('chmod -R a+r {0}'.format(artifact_dir), shell=True)
 
@@ -89,7 +90,11 @@ def test_backend_socket(device):
 
 
 def test_rules(device):
-    assert 1 == int(device.run_ssh('nft list chain ip nat POSTROUTING | grep masquerade | wc -l'))
+    rules = device.run_ssh(
+        'if command -v nft >/dev/null 2>&1; '
+        'then nft list chain ip nat POSTROUTING | grep masquerade | wc -l; '
+        'else iptables -t nat -S POSTROUTING | grep MASQUERADE | wc -l; fi')
+    assert 1 == int(rules.strip())
 
 
 def test_prefix_delegation(device):

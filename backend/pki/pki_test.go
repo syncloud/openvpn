@@ -162,6 +162,10 @@ func TestInit_AdoptsExistingEasyRsaCa(t *testing.T) {
 }
 
 func writeEasyRsaCa(t *testing.T, dir string) (*x509.Certificate, *rsa.PrivateKey) {
+	return writeCa(t, dir, x509.KeyUsageCertSign|x509.KeyUsageCRLSign)
+}
+
+func writeCa(t *testing.T, dir string, usage x509.KeyUsage) (*x509.Certificate, *rsa.PrivateKey) {
 	t.Helper()
 
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -172,7 +176,7 @@ func writeEasyRsaCa(t *testing.T, dir string) (*x509.Certificate, *rsa.PrivateKe
 		Subject:               pkix.Name{CommonName: "ChangeMe"},
 		NotBefore:             time.Now().Add(-24 * time.Hour),
 		NotAfter:              time.Now().Add(7500 * 24 * time.Hour),
-		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
+		KeyUsage:              usage,
 		BasicConstraintsValid: true,
 		IsCA:                  true,
 	}
@@ -198,4 +202,25 @@ func readCRL(t *testing.T, file string) *x509.RevocationList {
 	crl, err := x509.ParseRevocationList(block.Bytes)
 	require.NoError(t, err)
 	return crl
+}
+
+func TestInit_LegacyCaWithoutCrlSign(t *testing.T) {
+	dir := path.Join(t.TempDir(), "pki")
+	require.NoError(t, os.MkdirAll(path.Join(dir, "private"), 0755))
+	require.NoError(t, os.MkdirAll(path.Join(dir, "issued"), 0755))
+	writeCa(t, dir, x509.KeyUsageCertSign)
+
+	p := &PKI{Dir: dir}
+	require.NoError(t, p.Init(), "a CA that cannot sign a CRL must not stop the VPN coming up")
+
+	assert.False(t, p.CRLSupported())
+	assert.NoFileExists(t, p.CrlPath())
+	assert.NoError(t, p.IssueClient("still-works"))
+	assert.NoError(t, p.Revoke("still-works"))
+}
+
+func TestCRLSupported_ModernCa(t *testing.T) {
+	p := newPKI(t)
+	assert.True(t, p.CRLSupported())
+	assert.FileExists(t, p.CrlPath())
 }

@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 for i in $(seq 1 10); do
-  if apt-get update && apt-get install -y --no-install-recommends "$@"; then
+  if apt-get update && apt-get install -y "$@"; then
     exit 0
   fi
   echo "retry apt"
