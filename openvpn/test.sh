@@ -7,3 +7,4 @@ BUILD_DIR=${DIR}/../build/snap/openvpn
 ls -la ${BUILD_DIR}/lib
 ${BUILD_DIR}/sbin/openvpn.sh --help || true
 ${BUILD_DIR}/sbin/openvpn.sh --version
+${BUILD_DIR}/sbin/openvpn.sh --show-ciphers | grep AES-256-GCM

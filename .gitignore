@@ -1,3 +1,13 @@
 .idea
 venv
 *.iml
+build
+artifact
+version
+package.name
+*.snap
+node_modules
+
+# stray artifacts from the removed beego app
+web/data.db
+web/openvpn-web-ui
