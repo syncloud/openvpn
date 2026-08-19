@@ -25,4 +25,6 @@ npm ci --no-audit --no-fund
 
 PLAYWRIGHT_DOMAIN=${DISTRO}.com \
 PLAYWRIGHT_APP=${APP} \
+PLAYWRIGHT_PROJECT=${PROJECT} \
+PLAYWRIGHT_ARTIFACT_DIR=${ARTIFACT} \
   npx playwright test --project=${PROJECT} "${SPEC}"

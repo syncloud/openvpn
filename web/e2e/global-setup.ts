@@ -21,6 +21,8 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
 
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     await page.waitForURL(/^https:\/\/auth\./, { timeout: 30_000 })
+    await mkdir('e2e/.shots', { recursive: true })
+    await page.screenshot({ path: 'e2e/.shots/00-sso-login.png' })
     await loginOidc(page, credsFromEnv())
     await page.waitForURL((url) => url.pathname.includes('/consent/') || backAtApp(url), {
       timeout: 30_000,
