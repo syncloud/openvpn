@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -39,12 +40,17 @@ func (c *Client) Version() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	for _, line := range strings.Split(out, "\n") {
-		if version, found := strings.CutPrefix(strings.TrimSpace(line), "OpenVPN Version: "); found {
-			return version, nil
-		}
+	return ParseVersion(out), nil
+}
+
+var versionRegexp = regexp.MustCompile(`OpenVPN (\d+\.\d+\.\d+)`)
+
+func ParseVersion(output string) string {
+	match := versionRegexp.FindStringSubmatch(output)
+	if match == nil {
+		return ""
 	}
-	return "", nil
+	return match[1]
 }
 
 func (c *Client) execute(command string) (string, error) {

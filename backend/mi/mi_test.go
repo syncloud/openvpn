@@ -78,3 +78,16 @@ func TestClient_SocketMissing(t *testing.T) {
 	_, err := client.Connections()
 	assert.Error(t, err)
 }
+
+const versionOutput = `OpenVPN Version: OpenVPN 2.7.6 [git:modernize-2.7/a51ebac] x86_64-pc-linux-gnu [SSL (OpenSSL)] [LZO] [LZ4] [EPOLL] [MH/PKTINFO] [AEAD] built on Aug 19 2026
+Management Version: 5
+END`
+
+func TestParseVersion(t *testing.T) {
+	assert.Equal(t, "2.7.6", ParseVersion(versionOutput),
+		"the UI shows this verbatim, so it must not be the whole build banner")
+}
+
+func TestParseVersion_Unparseable(t *testing.T) {
+	assert.Equal(t, "", ParseVersion("Management Version: 5\nEND"))
+}
