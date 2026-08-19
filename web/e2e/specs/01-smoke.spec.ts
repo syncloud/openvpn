@@ -20,11 +20,6 @@ test('clients page loads and a client can be created, downloaded and revoked', a
   const profile = await download
   expect(profile.suggestedFilename()).toBe('smoke-client.ovpn')
 
-  await page.getByTestId('client-qr-smoke-client').click()
-  await expect(page.getByTestId('qr-dialog')).toBeVisible()
-  await shoot(page, info, 'client-qr')
-  await page.keyboard.press('Escape')
-
   await page.getByTestId('client-revoke-smoke-client').click()
   await expect(page.getByTestId('revoke-dialog')).toBeVisible()
   await shoot(page, info, 'client-revoke-dialog')

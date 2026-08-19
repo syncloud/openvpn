@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import QRCode from 'qrcode'
 import { api, type Client } from '@/api'
 import { notify } from '@/notify'
 
@@ -8,9 +7,6 @@ const clients = ref<Client[]>([])
 const loading = ref(false)
 const creating = ref(false)
 const newName = ref('')
-const qrVisible = ref(false)
-const qrDataUrl = ref('')
-const qrName = ref('')
 const revokeVisible = ref(false)
 const revoking = ref(false)
 const revokeTarget = ref<Client | null>(null)
@@ -74,17 +70,6 @@ function download(client: Client) {
   window.location.href = api.configUrl(client.name)
 }
 
-async function showQr(client: Client) {
-  try {
-    const config = await api.configText(client.name)
-    qrDataUrl.value = await QRCode.toDataURL(config, { width: 320, errorCorrectionLevel: 'L' })
-    qrName.value = client.name
-    qrVisible.value = true
-  } catch (e) {
-    notify.error((e as Error).message)
-  }
-}
-
 onMounted(load)
 </script>
 
@@ -129,7 +114,7 @@ onMounted(load)
       <el-table-column label="Expires" min-width="120">
         <template #default="{ row }">{{ new Date(row.expires_at).toLocaleDateString() }}</template>
       </el-table-column>
-      <el-table-column label="Actions" width="260" align="right">
+      <el-table-column label="Actions" width="200" align="right">
         <template #default="{ row }">
           <div class="sc-actions row-actions">
             <el-button
@@ -138,9 +123,6 @@ onMounted(load)
               @click="download(row)"
             >
               Download
-            </el-button>
-            <el-button size="small" :data-testid="`client-qr-${row.name}`" @click="showQr(row)">
-              QR
             </el-button>
             <el-button
               size="small"
@@ -164,11 +146,6 @@ onMounted(load)
       <el-table-column prop="serial" label="Serial" min-width="180" />
     </el-table>
   </div>
-
-  <el-dialog v-model="qrVisible" :title="qrName" width="360" data-testid="qr-dialog">
-    <img v-if="qrDataUrl" :src="qrDataUrl" alt="client profile" class="qr" />
-    <p class="sc-lead qr-hint">Scan with the OpenVPN Connect app to import this profile.</p>
-  </el-dialog>
 
   <el-dialog v-model="revokeVisible" title="Revoke client" width="420" data-testid="revoke-dialog">
     <p>
@@ -203,18 +180,4 @@ onMounted(load)
   gap: 6px;
 }
 
-.qr {
-  display: block;
-  width: 100%;
-  max-width: 320px;
-  margin: 0 auto;
-  border-radius: 12px;
-  background: #ffffff;
-  padding: 8px;
-}
-
-.qr-hint {
-  margin: 14px 0 0;
-  text-align: center;
-}
 </style>
