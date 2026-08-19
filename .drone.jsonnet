@@ -1,311 +1,175 @@
 local name = 'openvpn';
-local browser = 'firefox';
+
 local go = '1.25';
+local node = '20.18.1';
 local nginx = '1.29.3-alpine3.22';
 local debian = 'bookworm-slim';
-local openvpn = '2.6.16';
-local easyrsa = '3.2.4';
-local gcc = '13.4.0';
-local openssl = '3.1.4';
-local platform = '25.09';
-local selenium = '4.35.0-20250828';
-local store_publisher = 'stable-346';
 local python = '3.12-slim-bookworm';
+local gcc = '13.4.0';
+local playwright = 'mcr.microsoft.com/playwright:v1.59.1-jammy';
+local store_publisher = 'stable-346';
+
+local openvpn = '2.7.6';
+
+local platform = '26.08.01';
 local distro_default = 'bookworm';
+local distros = ['bookworm', 'buster'];
 
-local build(arch, test_ui, dind) = [
-  {
-    kind: 'pipeline',
-    type: 'docker',
-    name: arch,
-    platform: {
-      os: 'linux',
-      arch: arch,
-    },
-    steps: [
-             {
-               name: 'version',
-               image: 'debian:' + debian,
-               commands: [
-                 'echo $DRONE_BUILD_NUMBER > version',
-               ],
-             },
-             {
-               name: 'openssl',
-               image: 'alpine/openssl:' + openssl,
-               commands: [
-                 './openssl/build.sh',
-               ],
-             },
-             {
-               name: 'openssl test',
-               image: 'syncloud/platform-' + distro_default + '-' + arch + ':' + platform,
-               commands: [
-                 './openssl/test.sh',
-               ],
-             },
-             {
-               name: 'nginx',
-               image: 'nginx:' + nginx,
-               commands: [
-                 './nginx/build.sh',
-               ],
-             },
-             {
-               name: 'nginx test',
-               image: 'syncloud/platform-' + distro_default + '-' + arch + ':' + platform,
-               commands: [
-                 './nginx/test.sh',
-               ],
-             },
-             {
-               name: 'easyrsa',
-               image: 'debian:' + debian,
-               commands: [
-                 './easyrsa/build.sh ' + easyrsa,
-               ],
-             },
-             {
-               name: 'easyrsa test',
-               image: 'syncloud/platform-' + distro_default + '-' + arch + ':' + platform,
-               commands: [
-                 './easyrsa/test.sh',
-               ],
-             },
-             {
-               name: 'openvpn',
-               image: 'gcc:' + gcc,
-               commands: [
-                 './openvpn/build.sh ' + openvpn,
-               ],
-             },
-             {
-               name: 'openvpn test',
-               image: 'syncloud/platform-' + distro_default + '-' + arch + ':' + platform,
-               commands: [
-                 './openvpn/test.sh',
-               ],
-             },
-             {
-               name: 'web',
-               image: 'golang:' + go,
-               commands: [
-                 'cd web',
-                 './build.sh',
-               ],
-             },
-     {
-               name: 'web test',
-               image: 'syncloud/platform-' + distro_default + '-' + arch + ':' + platform,
-               commands: [
-                 './web/test.sh',
-               ],
-             },
-{
-               name: 'web test old',
-               image: 'debian:buster-slim',
-               commands: [
-                 './web/test.sh',
-               ],
-             },
-             {
-               name: 'package python',
-               image: 'docker:' + dind,
-               commands: [
-                 './python/build.sh',
-               ],
-               volumes: [
-                 {
-                   name: 'dockersock',
-                   path: '/var/run',
-                 },
-               ],
-             },
-             {
-               name: 'package',
-               image: 'debian:' + debian,
-               commands: [
-                 'VERSION=$(cat version)',
-                 './package.sh ' + name + ' $VERSION ',
-               ],
-             },
-             {
-               name: 'test',
-               image: 'python:' + python,
-               commands: [
-                 'cd test',
-                 './deps.sh',
-                 'py.test -x -s test.py --distro=' + distro_default + ' --ver=$DRONE_BUILD_NUMBER --app=' + name,
-               ],
-             },
-           ] +
-           (if test_ui then ([
-                               {
-                                 name: 'selenium',
-                                 image: 'selenium/standalone-' + browser + ':' + selenium,
-                                 detach: true,
-                                 environment: {
-                                   SE_NODE_SESSION_TIMEOUT: '999999',
-                                   START_XVFB: 'true',
-                                 },
-                                 volumes: [{
-                                   name: 'shm',
-                                   path: '/dev/shm',
-                                 }],
-                                 commands: [
-                                   'cat /etc/hosts',
-                                   'DOMAIN="' + distro_default + '.com"',
-                                   'APP_DOMAIN="' + name + '.' + distro_default + '.com"',
-                                   'getent hosts $APP_DOMAIN | sed "s/$APP_DOMAIN/auth.$DOMAIN/g" | sudo tee -a /etc/hosts',
-                                   'cat /etc/hosts',
-                                   '/opt/bin/entry_point.sh',
-                                 ],
-                               },
-                               {
-                                 name: 'selenium-video',
-                                 image: 'selenium/video:ffmpeg-4.3.1-20220208',
-                                 detach: true,
-                                 environment: {
-                                   DISPLAY_CONTAINER_NAME: 'selenium',
-                                   PRESET: '-preset ultrafast -movflags faststart',
-                                 },
-                                 volumes: [
-                                   {
-                                     name: 'shm',
-                                     path: '/dev/shm',
-                                   },
-                                   {
-                                     name: 'videos',
-                                     path: '/videos',
-                                   },
-                                 ],
-                               },
-                               {
-                                 name: 'test-ui',
-                                 image: 'python:' + python,
-                                 commands: [
-                                   'cd test',
-                                   './deps.sh',
-                                   'py.test -x -s ui.py --distro=' + distro_default + ' --ver=$DRONE_BUILD_NUMBER --app=' + name + ' --browser=' + browser,
-                                 ],
-                                 volumes: [{
-                                   name: 'videos',
-                                   path: '/videos',
-                                 }],
-                               },
-                               {
-                                 name: 'test-upgrade',
-                                 image: 'python:' + python,
-                                 commands: [
-                                   'cd test',
-                                   './deps.sh',
-                                   'py.test -x -s upgrade.py --distro=' + distro_default + ' --ver=$DRONE_BUILD_NUMBER --app=' + name + ' --browser=' + browser,
-                                 ],
-                                 privileged: true,
-                                 volumes: [{
-                                   name: 'videos',
-                                   path: '/videos',
-                                 }],
-                               },
-                             ]) else []) + [
-      {
-        name: 'publish',
-        image: 'syncloud/store-publisher:' + store_publisher,
-        environment: {
-          SYNCLOUD_TOKEN: { from_secret: 'SYNCLOUD_TOKEN' },
-        },
-        command: ['snap', '-c', '${DRONE_BRANCH}'],
-        when: {
-          branch: ['master', 'stable'],
-          event: ['push'],
-        },
-      },
-      {
-        name: 'artifact',
-        image: 'appleboy/drone-scp:1.6.4',
-        settings: {
-          host: {
-            from_secret: 'artifact_host',
-          },
-          username: 'artifact',
-          key: {
-            from_secret: 'artifact_key',
-          },
-          timeout: '2m',
-          command_timeout: '2m',
-          target: '/home/artifact/repo/' + name + '/${DRONE_BUILD_NUMBER}-' + arch,
-          source: 'artifact/*',
-          strip_components: 1,
-        },
-        when: {
-          status: ['failure', 'success'],
-          event: ['push'],
-        },
-      },
-    ],
-    trigger: {
-      event: [
-        'push',
-        'pull_request',
-      ],
-    },
-    services: [
-      {
-        name: 'docker',
-        image: 'docker:' + dind,
-        privileged: true,
-        volumes: [
-          {
-            name: 'dockersock',
-            path: '/var/run',
-          },
-        ],
-      },
-      {
-        name: name + '.' + distro_default + '.com',
-        image: 'syncloud/platform-' + distro_default + '-' + arch + ':' + platform,
-        privileged: true,
-        volumes: [
-          {
-            name: 'dbus',
-            path: '/var/run/dbus',
-          },
-          {
-            name: 'dev',
-            path: '/dev',
-          },
-        ],
-      },
-    ],
-    volumes: [
-      {
-        name: 'dbus',
-        host: {
-          path: '/var/run/dbus',
-        },
-      },
-      {
-        name: 'dev',
-        host: {
-          path: '/dev',
-        },
-      },
-      {
-        name: 'shm',
-        temp: {},
-      },
-      {
-        name: 'videos',
-        temp: {},
-      },
-      {
-        name: 'dockersock',
-        temp: {},
-      },
-    ],
+local platform_image(distro) = 'syncloud/platform-' + distro + ':' + platform;
+
+local build(arch, test_ui) = [{
+  kind: 'pipeline',
+  type: 'docker',
+  name: arch,
+  platform: {
+    os: 'linux',
+    arch: arch,
   },
-];
+  steps: [
+    {
+      name: 'nginx',
+      image: 'nginx:' + nginx,
+      commands: ['./nginx/build.sh'],
+    },
+  ] + [
+    {
+      name: 'nginx test ' + distro,
+      image: platform_image(distro),
+      commands: ['./nginx/test.sh'],
+    }
+    for distro in distros
+  ] + [
+    {
+      name: 'openvpn',
+      image: 'gcc:' + gcc,
+      commands: ['./openvpn/build.sh ' + openvpn],
+    },
+  ] + [
+    {
+      name: 'openvpn test ' + distro,
+      image: platform_image(distro),
+      commands: ['./openvpn/test.sh'],
+    }
+    for distro in distros
+  ] + [
+    {
+      name: 'cli',
+      image: 'golang:' + go,
+      commands: ['./cli/build.sh'],
+    },
+  ] + [
+    {
+      name: 'cli test ' + distro,
+      image: platform_image(distro),
+      commands: ['./cli/test.sh'],
+    }
+    for distro in distros
+  ] + [
+    {
+      name: 'backend',
+      image: 'golang:' + go,
+      commands: ['./backend/build.sh'],
+    },
+    {
+      name: 'web',
+      image: 'node:' + node,
+      commands: ['./web/build.sh'],
+    },
+    {
+      name: 'package',
+      image: 'debian:' + debian,
+      commands: ['./package.sh ' + name + ' $DRONE_BUILD_NUMBER'],
+    },
+  ] + [
+    {
+      name: 'test ' + distro,
+      image: 'python:' + python,
+      commands: ['./ci/test.sh test.py ' + distro + ' ' + name],
+    }
+    for distro in distros
+  ] + (if test_ui then [
+         {
+           name: 'e2e',
+           image: playwright,
+           commands: ['./ci/ui.sh desktop ' + name + ' ' + distro_default + ' specs/01-smoke.spec.ts'],
+           environment: { DEVICE_USER: 'user', DEVICE_PASSWORD: 'Password1' },
+         },
+         {
+           name: 'e2e-mobile',
+           image: playwright,
+           commands: ['./ci/ui.sh mobile ' + name + ' ' + distro_default + ' specs/01-smoke.spec.ts'],
+           environment: { DEVICE_USER: 'user', DEVICE_PASSWORD: 'Password1' },
+         },
+         {
+           name: 'test-upgrade',
+           image: 'python:' + python,
+           commands: ['./ci/test.sh upgrade.py ' + distro_default + ' ' + name],
+         },
+         {
+           name: 'e2e-after-upgrade',
+           image: playwright,
+           commands: ['./ci/ui.sh desktop ' + name + ' ' + distro_default + ' specs/02-post-upgrade.spec.ts'],
+           environment: { DEVICE_USER: 'user', DEVICE_PASSWORD: 'Password1' },
+         },
+         {
+           name: 'e2e-after-upgrade-mobile',
+           image: playwright,
+           commands: ['./ci/ui.sh mobile ' + name + ' ' + distro_default + ' specs/02-post-upgrade.spec.ts'],
+           environment: { DEVICE_USER: 'user', DEVICE_PASSWORD: 'Password1' },
+         },
+       ] else []) + [
+    {
+      name: 'publish',
+      image: 'syncloud/store-publisher:' + store_publisher,
+      environment: {
+        SYNCLOUD_TOKEN: { from_secret: 'SYNCLOUD_TOKEN' },
+      },
+      command: ['snap', '-c', '${DRONE_BRANCH}'],
+      when: {
+        branch: ['master', 'stable'],
+        event: ['push'],
+      },
+    },
+    {
+      name: 'artifact',
+      image: 'appleboy/drone-scp:1.6.4',
+      settings: {
+        host: { from_secret: 'artifact_host' },
+        username: 'artifact',
+        key: { from_secret: 'artifact_key' },
+        timeout: '2m',
+        command_timeout: '2m',
+        target: '/home/artifact/repo/' + name + '/${DRONE_BUILD_NUMBER}-' + arch,
+        source: ['artifact/*'],
+        strip_components: 1,
+      },
+      when: {
+        status: ['failure', 'success'],
+      },
+    },
+  ],
+  trigger: {
+    event: ['push'],
+  },
+  services: [
+    {
+      name: name + '.' + distro + '.com',
+      image: platform_image(distro),
+      privileged: true,
+      entrypoint: ['/bin/sh', '-c', "mkdir -p /etc/systemd/system/snapd.service.d && printf '[Service]\\nExecStartPost=/bin/sh -c \"/usr/bin/snap set system refresh.hold=2099-01-01T00:00:00Z\"\\n' > /etc/systemd/system/snapd.service.d/disable-refresh.conf && exec /sbin/init"],
+      volumes: [
+        { name: 'dbus', path: '/var/run/dbus' },
+        { name: 'dev', path: '/dev' },
+      ],
+    }
+    for distro in distros
+  ],
+  volumes: [
+    { name: 'dbus', host: { path: '/var/run/dbus' } },
+    { name: 'dev', host: { path: '/dev' } },
+  ],
+}];
 
-build('amd64', true, '20.10.21-dind') +
-build('arm64', false, '20.10.21-dind') +
-build('arm', false, '19.03.8-dind')
+build('amd64', true) +
+build('arm64', false) +
+build('arm', false)

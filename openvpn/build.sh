@@ -6,8 +6,12 @@ cd ${DIR}
 BUILD_DIR=${DIR}/../build/snap/openvpn
 VERSION=$1
 
-apt update
-apt -y install \
+if [[ -z "${VERSION}" ]]; then
+    echo "usage $0 version"
+    exit 1
+fi
+
+${DIR}/../apt.sh \
   liblzo2-dev \
   libpam-dev \
   net-tools \
@@ -17,12 +21,16 @@ apt -y install \
   wget \
   unzip
 
+mkdir -p ${DIR}/../build
 cd ${DIR}/../build
-wget https://swupdate.openvpn.org/community/releases/openvpn-${VERSION}.tar.gz  --progress dot:giga -O openvpn-${VERSION}.tar.gz
+${DIR}/../download-retry.sh \
+  https://swupdate.openvpn.net/community/releases/openvpn-${VERSION}.tar.gz \
+  openvpn-${VERSION}.tar.gz
 tar xzf openvpn-${VERSION}.tar.gz
 rm openvpn-${VERSION}.tar.gz
-cd openvpn-*
-./configure --prefix=${BUILD_DIR}
+cd openvpn-${VERSION}
+
+./configure --prefix=${BUILD_DIR} --disable-dco
 make
 make install
 
@@ -52,4 +60,3 @@ cp $(readlink -f /lib*/ld-linux-*.so*) ${BUILD_DIR}/lib/ld.so
 cp $DIR/bin/openvpn.sh ${BUILD_DIR}/sbin
 
 ldd ${BUILD_DIR}/sbin/openvpn
-

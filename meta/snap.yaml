@@ -1,37 +1,47 @@
+name: openvpn
+summary: OpenVPN
+description: Secure connection to your Syncloud device over the Internet
+grade: stable
+
 apps:
-  web:
-    user: openvpn
-    command: bin/service.web.sh
+
+  backend:
+    command: bin/service.backend.sh
     daemon: simple
-    plugs:
-    - network
-    - network-bind
     restart-condition: always
     start-timeout: 600s
     restart-delay: 10s
     before: [server]
+
   server:
     command: bin/service.server.sh
-    daemon: forking
-    plugs:
-    - network
-    - network-bind
-    restart-condition: always
-    start-timeout: 600s
-    restart-delay: 10s
-  nginx:
-    user: openvpn
-    command: bin/service.nginx.sh
     daemon: simple
-    plugs:
-    - network
-    - network-bind
     restart-condition: always
     start-timeout: 600s
     restart-delay: 10s
 
-confinement: strict
-description: Secure connection to your Syncloud device over the Internet
-grade: stable
-name: openvpn
-summary: OpenVPN
+  nginx:
+    user: openvpn
+    command: bin/service.nginx.sh
+    daemon: simple
+    restart-condition: always
+    start-timeout: 600s
+    restart-delay: 10s
+
+  cli:
+    command: bin/cli
+
+  storage-change:
+    command: bin/cli storage-change
+
+  access-change:
+    command: bin/cli access-change
+
+  backup-pre-stop:
+    command: bin/cli backup-pre-stop
+
+  restore-pre-start:
+    command: bin/cli restore-pre-start
+
+  restore-post-start:
+    command: bin/cli restore-post-start
