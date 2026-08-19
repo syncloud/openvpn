@@ -92,9 +92,10 @@ def test_server_running(device):
 
 def test_rules(device):
     rules = device.run_ssh(
-        'if command -v nft >/dev/null 2>&1; '
-        'then nft list chain ip nat POSTROUTING | grep masquerade | wc -l; '
-        'else iptables -t nat -S POSTROUTING | grep MASQUERADE | wc -l; fi')
+        "sh -c '"
+        "if command -v nft >/dev/null 2>&1; "
+        "then nft list chain ip nat POSTROUTING | grep masquerade | wc -l; "
+        "else iptables -t nat -S POSTROUTING | grep MASQUERADE | wc -l; fi'")
     assert 1 == int(rules.strip())
 
 
@@ -107,7 +108,7 @@ def test_prefix_delegation(device):
 
 def test_ipv6_prefix_survives_rerender(device):
     device.run_ssh('snap restart openvpn.backend')
-    device.run_ssh('grep "server-ipv6 111:222:333::/64" {0}/openvpn/server.conf'.format(DATA_DIR),
+    device.run_ssh("grep 'server-ipv6 111:222:333::/64' {0}/openvpn/server.conf".format(DATA_DIR),
                    retries=30)
 
 

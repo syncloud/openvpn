@@ -1,4 +1,5 @@
 import pytest
+import requests
 from subprocess import check_output
 from syncloudlib.integration.hosts import add_host_alias
 from syncloudlib.integration.installer import local_install
@@ -54,11 +55,11 @@ def test_released_creates_client(device, released_state):
 
 def test_capture_released_state(device, released_state):
     released_state['ca'] = device.run_ssh(
-        'sha256sum {0}/pki/ca.crt | cut -d" " -f1'.format(DATA_DIR)).strip()
+        "sha256sum {0}/pki/ca.crt | awk '{{print $1}}'".format(DATA_DIR)).strip()
     released_state['client'] = device.run_ssh(
-        'sha256sum {0}/pki/issued/{1}.crt | cut -d" " -f1'.format(DATA_DIR, UPGRADE_CLIENT)).strip()
+        "sha256sum {0}/pki/issued/{1}.crt | awk '{{print $1}}'".format(DATA_DIR, UPGRADE_CLIENT)).strip()
     released_state['port'] = device.run_ssh(
-        'grep "^port " {0}/openvpn/server.conf | cut -d" " -f2'.format(DATA_DIR)).strip()
+        "grep '^port ' {0}/openvpn/server.conf | awk '{{print $2}}'".format(DATA_DIR)).strip()
 
     assert released_state['ca']
     assert released_state['port']
@@ -69,14 +70,14 @@ def test_upgrade(app_archive_path, device_host, device_password):
 
 
 def test_ca_is_not_regenerated(device, released_state):
-    after = device.run_ssh('sha256sum {0}/pki/ca.crt | cut -d" " -f1'.format(DATA_DIR)).strip()
+    after = device.run_ssh("sha256sum {0}/pki/ca.crt | awk '{{print $1}}'".format(DATA_DIR)).strip()
     assert after == released_state['ca'], \
         'the CA changed on upgrade, every already-downloaded client profile is now invalid'
 
 
 def test_existing_client_cert_survives(device, released_state):
     after = device.run_ssh(
-        'sha256sum {0}/pki/issued/{1}.crt | cut -d" " -f1'.format(DATA_DIR, UPGRADE_CLIENT)).strip()
+        "sha256sum {0}/pki/issued/{1}.crt | awk '{{print $1}}'".format(DATA_DIR, UPGRADE_CLIENT)).strip()
     assert after == released_state['client']
 
 
@@ -105,6 +106,5 @@ def test_server_running_after_upgrade(device):
 
 
 def test_index_after_upgrade(app_domain):
-    import requests
     response = requests.get('https://{0}'.format(app_domain), verify=False, allow_redirects=False)
     assert response.status_code in (200, 302), response.text
