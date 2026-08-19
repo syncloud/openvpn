@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { api, type Client } from '@/api'
 import { notify } from '@/notify'
 
@@ -10,6 +10,12 @@ const newName = ref('')
 const revokeVisible = ref(false)
 const revoking = ref(false)
 const revokeTarget = ref<Client | null>(null)
+
+const narrow = ref(false)
+
+function updateWidth() {
+  narrow.value = window.innerWidth < 768
+}
 
 const active = computed(() => clients.value.filter((c) => !c.revoked))
 const revoked = computed(() => clients.value.filter((c) => c.revoked))
@@ -70,7 +76,13 @@ function download(client: Client) {
   window.location.href = api.configUrl(client.name)
 }
 
-onMounted(load)
+onMounted(() => {
+  updateWidth()
+  window.addEventListener('resize', updateWidth)
+  load()
+})
+
+onUnmounted(() => window.removeEventListener('resize', updateWidth))
 </script>
 
 <template>
@@ -111,10 +123,10 @@ onMounted(load)
           <span :data-testid="`client-row-${row.name}`">{{ row.name }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="Expires" min-width="120">
+      <el-table-column v-if="!narrow" label="Expires" min-width="120">
         <template #default="{ row }">{{ new Date(row.expires_at).toLocaleDateString() }}</template>
       </el-table-column>
-      <el-table-column label="Actions" width="200" align="right">
+      <el-table-column label="Actions" :width="narrow ? 170 : 200" align="right">
         <template #default="{ row }">
           <div class="sc-actions row-actions">
             <el-button
@@ -143,7 +155,7 @@ onMounted(load)
     <h2 class="sc-section-title">Revoked</h2>
     <el-table :data="revoked" data-testid="revoked-table">
       <el-table-column prop="name" label="Name" min-width="140" />
-      <el-table-column prop="serial" label="Serial" min-width="180" />
+      <el-table-column v-if="!narrow" prop="serial" label="Serial" min-width="180" />
     </el-table>
   </div>
 
