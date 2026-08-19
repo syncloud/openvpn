@@ -1,8 +1,16 @@
 package auth
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
+	"math/big"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path"
 	"testing"
 	"time"
 
@@ -100,4 +108,48 @@ func TestPkceChallenge_IsDeterministicAndUrlSafe(t *testing.T) {
 	assert.NotContains(t, challenge, "+")
 	assert.NotContains(t, challenge, "/")
 	assert.NotContains(t, challenge, "=")
+}
+
+func TestPlatformCAClient_TrustsPlatformCA(t *testing.T) {
+	dir := t.TempDir()
+	caPath := path.Join(dir, "syncloud.ca.crt")
+
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+	tpl := &x509.Certificate{
+		SerialNumber:          big.NewInt(7),
+		Subject:               pkix.Name{CommonName: "syncloud"},
+		NotBefore:             time.Now().Add(-time.Hour),
+		NotAfter:              time.Now().Add(time.Hour),
+		KeyUsage:              x509.KeyUsageCertSign,
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+	}
+	der, err := x509.CreateCertificate(rand.Reader, tpl, tpl, &key.PublicKey, key)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(caPath,
+		pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}), 0644))
+
+	client, err := platformCAClient(caPath)
+	require.NoError(t, err)
+	assert.NotNil(t, client)
+}
+
+func TestPlatformCAClient_MissingFileIsAnError(t *testing.T) {
+	_, err := platformCAClient(path.Join(t.TempDir(), "absent.crt"))
+	assert.Error(t, err, "a missing platform CA must be loud, not a silent fallback to system roots")
+}
+
+func TestPlatformCAClient_GarbageIsAnError(t *testing.T) {
+	caPath := path.Join(t.TempDir(), "bad.crt")
+	require.NoError(t, os.WriteFile(caPath, []byte("not a certificate"), 0644))
+
+	_, err := platformCAClient(caPath)
+	assert.Error(t, err)
+}
+
+func TestPlatformCAClient_EmptyPathUsesSystemRoots(t *testing.T) {
+	client, err := platformCAClient("")
+	require.NoError(t, err)
+	assert.NotNil(t, client)
 }

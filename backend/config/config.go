@@ -20,6 +20,7 @@ type Config struct {
 	OpenvpnDir       string
 	ManagementSocket string
 	ServerAddress    string
+	PlatformCA       string
 }
 
 func Load(path string) (*Config, error) {
@@ -42,6 +43,7 @@ func Load(path string) (*Config, error) {
 		OpenvpnDir:       values["OPENVPN_DIR"],
 		ManagementSocket: values["MANAGEMENT_SOCKET"],
 		ServerAddress:    values["SERVER_ADDRESS"],
+		PlatformCA:       values["PLATFORM_CA"],
 	}, nil
 }
 

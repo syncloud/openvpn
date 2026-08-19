@@ -81,6 +81,7 @@ func run(log *zap.Logger) error {
 		RedirectURL:  cfg.OIDCRedirectURI,
 		AdminGroup:   adminGroup,
 		CookieSecret: []byte(cfg.SessionSecret),
+		CAPath:       cfg.PlatformCA,
 		Logger:       log,
 	}
 	if err := oidc.Init(context.Background()); err != nil {

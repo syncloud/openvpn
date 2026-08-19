@@ -27,6 +27,7 @@ func TestLoad(t *testing.T) {
 			"OPENVPN_DIR=/var/snap/openvpn/current/openvpn\n"+
 			"MANAGEMENT_SOCKET=/var/snap/openvpn/current/openvpn.socket\n"+
 			"SERVER_ADDRESS=device.example.com\n"+
+			"PLATFORM_CA=/var/snap/platform/current/syncloud.ca.crt\n"+
 			"\n"), 0644))
 
 	cfg, err := Load(file)
@@ -38,6 +39,7 @@ func TestLoad(t *testing.T) {
 	assert.Equal(t, "abc123", cfg.SessionSecret)
 	assert.Equal(t, "device.example.com", cfg.ServerAddress)
 	assert.Equal(t, "/var/snap/openvpn/current/pki", cfg.PkiDir)
+	assert.Equal(t, "/var/snap/platform/current/syncloud.ca.crt", cfg.PlatformCA)
 }
 
 func TestLoad_Missing(t *testing.T) {

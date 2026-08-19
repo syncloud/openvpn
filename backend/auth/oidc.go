@@ -5,10 +5,13 @@ import (
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"slices"
 	"strings"
 	"time"
@@ -33,15 +36,23 @@ type OIDC struct {
 	RedirectURL  string
 	AdminGroup   string
 	CookieSecret []byte
+	CAPath       string
 	Logger       *zap.Logger
 
+	client       *http.Client
 	provider     *oidc.Provider
 	verifier     *oidc.IDTokenVerifier
 	oauth2Config oauth2.Config
 }
 
 func (o *OIDC) Init(ctx context.Context) error {
-	provider, err := oidc.NewProvider(ctx, o.IssuerURL)
+	client, err := platformCAClient(o.CAPath)
+	if err != nil {
+		return err
+	}
+	o.client = client
+
+	provider, err := oidc.NewProvider(o.context(ctx), o.IssuerURL)
 	if err != nil {
 		return fmt.Errorf("oidc provider discovery: %w", err)
 	}
@@ -96,7 +107,7 @@ func (o *OIDC) Callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := r.Context()
+	ctx := o.context(r.Context())
 	token, err := o.oauth2Config.Exchange(ctx, r.URL.Query().Get("code"),
 		oauth2.SetAuthURLParam("code_verifier", verifier.Value))
 	if err != nil {
@@ -255,6 +266,36 @@ func clearCookie(w http.ResponseWriter, name string) {
 		HttpOnly: true,
 		Secure:   true,
 	})
+}
+
+// The platform terminates TLS with its own CA, which is not installed into the
+// OS trust store, so Go's default verification rejects Authelia. Every call to
+// the provider goes through a client that trusts it in addition to system roots.
+func platformCAClient(caPath string) (*http.Client, error) {
+	pool, err := x509.SystemCertPool()
+	if err != nil || pool == nil {
+		pool = x509.NewCertPool()
+	}
+	if caPath != "" {
+		pem, err := os.ReadFile(caPath)
+		if err != nil {
+			return nil, fmt.Errorf("read platform ca %s: %w", caPath, err)
+		}
+		if !pool.AppendCertsFromPEM(pem) {
+			return nil, fmt.Errorf("platform ca %s has no usable certificate", caPath)
+		}
+	}
+	return &http.Client{
+		Timeout:   30 * time.Second,
+		Transport: &http.Transport{TLSClientConfig: &tls.Config{RootCAs: pool}},
+	}, nil
+}
+
+func (o *OIDC) context(ctx context.Context) context.Context {
+	if o.client == nil {
+		return ctx
+	}
+	return oidc.ClientContext(ctx, o.client)
 }
 
 func randBase64(n int) (string, error) {
