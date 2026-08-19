@@ -33,7 +33,6 @@ keepalive {{ .Keepalive }}
 max-clients {{ .MaxClients }}
 explicit-exit-notify 1
 
-persist-key
 persist-tun
 
 verb 3

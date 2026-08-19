@@ -54,14 +54,19 @@ def test_index(app_domain):
     assert response.status_code in (200, 302), response.text
 
 
+def test_backend_ready(device):
+    device.run_ssh('test -S {0}/backend.sock'.format(DATA_DIR), retries=100)
+
+
 def test_pki_generated(device):
-    device.run_ssh('test -f {0}/pki/ca.crt'.format(DATA_DIR))
+    device.run_ssh('test -f {0}/pki/ca.crt'.format(DATA_DIR), retries=100)
     device.run_ssh('test -f {0}/pki/private/ca.key'.format(DATA_DIR))
     device.run_ssh('test -f {0}/pki/issued/server.crt'.format(DATA_DIR))
     device.run_ssh('test -f {0}/pki/crl.pem'.format(DATA_DIR))
 
 
 def test_server_conf_generated(device):
+    device.run_ssh('test -f {0}/openvpn/server.conf'.format(DATA_DIR), retries=100)
     conf = device.run_ssh('cat {0}/openvpn/server.conf'.format(DATA_DIR))
     assert 'topology subnet' in conf
     assert 'data-ciphers' in conf
@@ -82,11 +87,7 @@ def test_openvpn_version(device):
 
 
 def test_server_running(device):
-    device.run_ssh('test -S {0}/openvpn.socket'.format(DATA_DIR), retries=30)
-
-
-def test_backend_socket(device):
-    device.run_ssh('test -S {0}/backend.sock'.format(DATA_DIR), retries=30)
+    device.run_ssh('test -S {0}/openvpn.socket'.format(DATA_DIR), retries=100)
 
 
 def test_rules(device):

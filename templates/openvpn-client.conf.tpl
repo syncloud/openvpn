@@ -4,7 +4,6 @@ proto {{ .Proto }}
 remote {{ .ServerAddress }} {{ .Port }}
 resolv-retry infinite
 nobind
-persist-key
 persist-tun
 remote-cert-tls server
 data-ciphers {{ .DataCiphers }}
