@@ -4,6 +4,7 @@ import requests
 from os.path import join
 from subprocess import check_output
 from retrying import retry
+from test import snapd
 from syncloudlib.integration.hosts import add_host_alias
 from syncloudlib.integration.installer import local_install
 
@@ -39,12 +40,7 @@ def module_setup(request, device, data_dir, platform_data_dir, app_dir, artifact
 def test_start(module_setup, device, app, domain, device_host):
     add_host_alias(app, device_host, domain)
     device.run_ssh('date', retries=100, throw=True)
-    hold_refresh(device)
-
-
-def hold_refresh(device):
-    device.run_ssh('snap wait system seed.loaded', retries=100, throw=False)
-    device.run_ssh('snap set system refresh.hold=2099-01-01T00:00:00Z', retries=20, throw=False)
+    snapd.settle(device)
 
 
 @retry(stop_max_attempt_number=30, wait_fixed=10000)
