@@ -102,9 +102,14 @@ def test_rules(device):
     rules = device.run_ssh(
         "sh -c '"
         "if command -v nft >/dev/null 2>&1; "
-        "then nft list chain ip nat POSTROUTING | grep masquerade | wc -l; "
-        "else iptables -t nat -S POSTROUTING | grep MASQUERADE | wc -l; fi'")
-    assert 1 == int(rules.strip())
+        "then nft list chain ip nat POSTROUTING 2>/dev/null | grep masquerade | wc -l; "
+        "else iptables -t nat -S POSTROUTING 2>/dev/null | grep MASQUERADE | wc -l; fi'")
+    assert 1 == masquerade_count(rules), rules
+
+
+def masquerade_count(output):
+    lines = [line.strip() for line in output.strip().splitlines() if line.strip()]
+    return int(lines[-1])
 
 
 def test_prefix_delegation(device):
