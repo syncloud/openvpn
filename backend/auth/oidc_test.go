@@ -209,7 +209,9 @@ func TestAuthTransport_OverSocket(t *testing.T) {
 
 	go http.Serve(listener, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"served":"over-socket","host":"` + r.Host + `"}`))
+		_, _ = w.Write([]byte(`{"served":"over-socket","host":"` + r.Host +
+			`","proto":"` + r.Header.Get("X-Forwarded-Proto") +
+			`","fwdhost":"` + r.Header.Get("X-Forwarded-Host") + `"}`))
 	}))
 
 	rt := newAuthTransport("https://auth.example.com", socket, http.DefaultTransport)
@@ -222,8 +224,11 @@ func TestAuthTransport_OverSocket(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Contains(t, string(body), "over-socket")
-	assert.Contains(t, string(body), "auth.example.com",
+	assert.Contains(t, string(body), `"host":"auth.example.com"`,
 		"the public host must be preserved so token issuer validation still matches")
+	assert.Contains(t, string(body), `"proto":"https"`,
+		"without forwarded headers Authelia advertises http://localhost as the issuer")
+	assert.Contains(t, string(body), `"fwdhost":"auth.example.com"`)
 }
 
 func TestAuthTransport_NoSocketFallsBackToNetwork(t *testing.T) {

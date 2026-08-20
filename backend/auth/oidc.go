@@ -52,18 +52,31 @@ type OIDC struct {
 }
 
 func (o *OIDC) Init(ctx context.Context) error {
-	client, err := platformCAClient(o.CAPath)
+	network, err := platformCAClient(o.CAPath)
 	if err != nil {
 		return err
 	}
-	o.client = &http.Client{
-		Timeout:   30 * time.Second,
-		Transport: newAuthTransport(o.IssuerURL, o.AuthSocket, client.Transport),
-	}
 
-	provider, err := oidc.NewProvider(o.context(ctx), o.IssuerURL)
-	if err != nil {
-		return fmt.Errorf("oidc provider discovery: %w", err)
+	candidates := []*http.Client{}
+	if o.AuthSocket != "" {
+		candidates = append(candidates, &http.Client{
+			Timeout:   30 * time.Second,
+			Transport: newAuthTransport(o.IssuerURL, o.AuthSocket, network.Transport),
+		})
+	}
+	candidates = append(candidates, network)
+
+	var provider *oidc.Provider
+	var lastErr error
+	for _, client := range candidates {
+		o.client = client
+		provider, lastErr = oidc.NewProvider(o.context(ctx), o.IssuerURL)
+		if lastErr == nil {
+			break
+		}
+	}
+	if lastErr != nil {
+		return fmt.Errorf("oidc provider discovery: %w", lastErr)
 	}
 	o.mu.Lock()
 	defer o.mu.Unlock()
@@ -142,17 +155,19 @@ func newAuthTransport(issuerURL, socket string, fallback http.RoundTripper) http
 	}
 }
 
+// Authelia derives the OIDC issuer from the forwarded headers the public vhost
+// normally adds. Without them it advertises http://localhost, which fails
+// discovery validation against the public issuer, so they are set explicitly.
 func (t *authTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	if r.URL.Hostname() != t.host {
 		return t.fallback.RoundTrip(r)
 	}
 	viaSocket := r.Clone(r.Context())
 	viaSocket.URL.Scheme = "http"
-	resp, err := t.overSock.RoundTrip(viaSocket)
-	if err == nil {
-		return resp, nil
-	}
-	return t.fallback.RoundTrip(r)
+	viaSocket.Host = t.host
+	viaSocket.Header.Set("X-Forwarded-Proto", "https")
+	viaSocket.Header.Set("X-Forwarded-Host", t.host)
+	return t.overSock.RoundTrip(viaSocket)
 }
 
 func (o *OIDC) Login(w http.ResponseWriter, r *http.Request) {
