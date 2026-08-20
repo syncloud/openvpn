@@ -21,6 +21,7 @@ type Config struct {
 	ManagementSocket string
 	ServerAddress    string
 	PlatformCA       string
+	AuthSocket       string
 }
 
 func Load(path string) (*Config, error) {
@@ -44,6 +45,7 @@ func Load(path string) (*Config, error) {
 		ManagementSocket: values["MANAGEMENT_SOCKET"],
 		ServerAddress:    values["SERVER_ADDRESS"],
 		PlatformCA:       values["PLATFORM_CA"],
+		AuthSocket:       values["AUTH_LOCAL_SOCKET"],
 	}, nil
 }
 

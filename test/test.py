@@ -98,6 +98,15 @@ def test_server_running(device):
     device.run_ssh('test -S {0}/openvpn.socket'.format(DATA_DIR), retries=100)
 
 
+def test_auth_login_redirects_to_authelia(app_domain):
+    response = requests.get('https://{0}/auth/login'.format(app_domain),
+                            verify=False, allow_redirects=False)
+    assert response.status_code == 302, \
+        'expected a redirect to Authelia; 503 means OIDC discovery never succeeded ' \
+        'and sign-in is broken even though the backend is serving: {0}'.format(response.text)
+    assert 'auth.' in response.headers.get('Location', ''), response.headers
+
+
 def test_rules(device):
     rules = device.run_ssh(
         "sh -c '"

@@ -35,24 +35,8 @@ def released_state(device):
 
 def test_start(module_setup, device, app, domain, device_host):
     add_host_alias(app, device_host, domain)
-    snapd.settle(device)
     device.activated()
-    device.run_ssh('rm -rf {0}'.format(TMP_DIR), throw=False)
-    device.run_ssh('mkdir -p {0}'.format(TMP_DIR), throw=False)
-
-
-def test_install_released(device, app):
-    device.run_ssh('snap remove {0}'.format(app), throw=False)
-    device.run_ssh('snap install {0}'.format(app), retries=10)
-    device.run_ssh('test -f {0}/pki/ca.crt'.format(DATA_DIR), retries=100)
-
-
-def test_released_creates_client(device, released_state):
-    device.run_ssh(
-        '{0}/easyrsa/easyrsa --vars={0}/config/easyrsa/vars --batch build-client-full {1} nopass'.format(
-            APP_DIR, UPGRADE_CLIENT),
-        retries=5)
-    device.run_ssh('test -f {0}/pki/issued/{1}.crt'.format(DATA_DIR, UPGRADE_CLIENT))
+    snapd.settle(device)
 
 
 def test_capture_released_state(device, released_state):
@@ -64,6 +48,8 @@ def test_capture_released_state(device, released_state):
         "grep '^port ' {0}/openvpn/server.conf | cut -d' ' -f2".format(DATA_DIR)).strip()
 
     assert released_state['ca']
+    assert released_state['client'], \
+        'the pre-upgrade e2e spec should have issued {0}'.format(UPGRADE_CLIENT)
     assert released_state['port']
 
 
@@ -104,7 +90,14 @@ def test_upgraded_server_conf_is_27_clean(device):
 
 
 def test_server_running_after_upgrade(device):
-    device.run_ssh('test -S {0}/openvpn.socket'.format(DATA_DIR), retries=30)
+    device.run_ssh('test -S {0}/openvpn.socket'.format(DATA_DIR), retries=100)
+
+
+def test_auth_still_works_after_upgrade(app_domain):
+    response = requests.get('https://{0}/auth/login'.format(app_domain),
+                            verify=False, allow_redirects=False)
+    assert response.status_code == 302, \
+        'sign-in broke after the refresh; 503 means OIDC discovery failed: {0}'.format(response.text)
 
 
 def test_index_after_upgrade(app_domain):

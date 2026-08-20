@@ -25,6 +25,7 @@ type Variables struct {
 	AppUrl           string
 	AppDomain        string
 	AuthUrl          string
+	AuthSocket       string
 	Domain           string
 	DeviceDomain     string
 	Secret           string
@@ -192,6 +193,8 @@ func (i *Installer) UpdateConfigs() error {
 	if err != nil {
 		return err
 	}
+	authSocket := strings.TrimSuffix(
+		strings.TrimPrefix(i.platformClient.GetAuthLocalSocket(), "http://unix:"), ":")
 	deviceDomain, err := i.platformClient.GetDeviceDomainName()
 	if err != nil {
 		return err
@@ -225,6 +228,7 @@ func (i *Installer) UpdateConfigs() error {
 		AppUrl:           appUrl,
 		AppDomain:        appDomain,
 		AuthUrl:          authUrl,
+		AuthSocket:       authSocket,
 		Domain:           domain,
 		DeviceDomain:     deviceDomain,
 		Secret:           secret,
