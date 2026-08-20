@@ -6,7 +6,7 @@ BUILD_DIR=${ROOT}/build/snap/web/dist
 
 cd ${DIR}
 
-npm ci --no-audit --no-fund
+${ROOT}/npm.sh ci --no-audit --no-fund
 npm run build
 
 mkdir -p ${BUILD_DIR}
