@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/syncloud/golib/platform"
@@ -82,10 +83,12 @@ func run(log *zap.Logger) error {
 		AdminGroup:   adminGroup,
 		CookieSecret: []byte(cfg.SessionSecret),
 		CAPath:       cfg.PlatformCA,
+		AuthSocket:   cfg.AuthSocket,
 		Logger:       log,
 	}
-	if err := oidc.Init(context.Background()); err != nil {
-		return fmt.Errorf("oidc init: %w", err)
+	oidc.InitWithRetry(context.Background(), 30*time.Second)
+	if !oidc.Ready() {
+		log.Warn("oidc not ready yet, serving anyway and retrying in the background")
 	}
 
 	handlers := &api.Api{

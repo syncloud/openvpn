@@ -1,12 +1,15 @@
 package auth
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"io"
 	"math/big"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -16,6 +19,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 func newOIDC() *OIDC {
@@ -152,4 +156,77 @@ func TestPlatformCAClient_EmptyPathUsesSystemRoots(t *testing.T) {
 	client, err := platformCAClient("")
 	require.NoError(t, err)
 	assert.NotNil(t, client)
+}
+
+func TestInitWithRetry_DoesNotBlockServingWhenAuthUnreachable(t *testing.T) {
+	o := &OIDC{
+		IssuerURL:    "https://auth.unresolvable.invalid",
+		CookieSecret: []byte("s"),
+		CAPath:       "",
+		AuthSocket:   path.Join(t.TempDir(), "absent.socket"),
+		Logger:       zap.NewNop(),
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	o.InitWithRetry(ctx, time.Hour)
+
+	assert.False(t, o.Ready(), "discovery cannot succeed against an unresolvable host")
+
+	recorder := httptest.NewRecorder()
+	o.Login(recorder, httptest.NewRequest(http.MethodGet, "/auth/login", nil))
+	assert.Equal(t, http.StatusServiceUnavailable, recorder.Code,
+		"login must report unavailable, not panic on a nil oauth2 config")
+
+	cb := httptest.NewRecorder()
+	o.Callback(cb, httptest.NewRequest(http.MethodGet, "/auth/callback", nil))
+	assert.Equal(t, http.StatusServiceUnavailable, cb.Code)
+}
+
+func TestSessionsKeepWorkingWhileOidcIsDown(t *testing.T) {
+	o := &OIDC{CookieSecret: []byte("secret"), Logger: zap.NewNop()}
+	cookie, err := o.encodeSession(session{Sub: "u", Exp: time.Now().Add(time.Hour).Unix()})
+	require.NoError(t, err)
+
+	called := false
+	handler := o.Middleware(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { called = true }))
+	req := httptest.NewRequest(http.MethodGet, "/api/clients", nil)
+	req.AddCookie(&http.Cookie{Name: sessionCookie, Value: cookie})
+	handler.ServeHTTP(httptest.NewRecorder(), req)
+
+	assert.False(t, o.Ready())
+	assert.True(t, called, "an existing session is validated from the cookie HMAC, not from Authelia")
+}
+
+func TestAuthTransport_OverSocket(t *testing.T) {
+	dir, err := os.MkdirTemp("", "a")
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
+	socket := path.Join(dir, "s")
+	listener, err := net.Listen("unix", socket)
+	require.NoError(t, err)
+	defer listener.Close()
+
+	go http.Serve(listener, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"served":"over-socket","host":"` + r.Host + `"}`))
+	}))
+
+	rt := newAuthTransport("https://auth.example.com", socket, http.DefaultTransport)
+	client := &http.Client{Transport: rt, Timeout: 10 * time.Second}
+
+	resp, err := client.Get("https://auth.example.com/.well-known/openid-configuration")
+	require.NoError(t, err, "must not need DNS for the auth host")
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	assert.Contains(t, string(body), "over-socket")
+	assert.Contains(t, string(body), "auth.example.com",
+		"the public host must be preserved so token issuer validation still matches")
+}
+
+func TestAuthTransport_NoSocketFallsBackToNetwork(t *testing.T) {
+	rt := newAuthTransport("https://auth.example.com", "", http.DefaultTransport)
+	assert.Equal(t, http.DefaultTransport, rt, "with no socket configured it must not wrap")
 }

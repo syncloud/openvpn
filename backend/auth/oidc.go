@@ -10,10 +10,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -37,9 +40,12 @@ type OIDC struct {
 	AdminGroup   string
 	CookieSecret []byte
 	CAPath       string
+	AuthSocket   string
 	Logger       *zap.Logger
 
 	client       *http.Client
+	mu           sync.RWMutex
+	ready        bool
 	provider     *oidc.Provider
 	verifier     *oidc.IDTokenVerifier
 	oauth2Config oauth2.Config
@@ -50,12 +56,17 @@ func (o *OIDC) Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	o.client = client
+	o.client = &http.Client{
+		Timeout:   30 * time.Second,
+		Transport: newAuthTransport(o.IssuerURL, o.AuthSocket, client.Transport),
+	}
 
 	provider, err := oidc.NewProvider(o.context(ctx), o.IssuerURL)
 	if err != nil {
 		return fmt.Errorf("oidc provider discovery: %w", err)
 	}
+	o.mu.Lock()
+	defer o.mu.Unlock()
 	o.provider = provider
 	o.verifier = provider.Verifier(&oidc.Config{ClientID: o.ClientID})
 	o.oauth2Config = oauth2.Config{
@@ -65,10 +76,91 @@ func (o *OIDC) Init(ctx context.Context) error {
 		Endpoint:     provider.Endpoint(),
 		Scopes:       []string{oidc.ScopeOpenID, "profile", "email", "groups"},
 	}
+	o.ready = true
 	return nil
 }
 
+// Discovery must never be fatal. It reaches Authelia over the platform's local
+// socket, but on a device whose resolver cannot answer for its own domain the
+// public fallback fails, and a hard exit here crash-loops the backend and
+// leaves nginx serving 502 for the whole app. Existing sessions keep working
+// while this retries, because they are validated from the cookie HMAC alone.
+func (o *OIDC) InitWithRetry(ctx context.Context, every time.Duration) {
+	if err := o.Init(ctx); err == nil {
+		return
+	}
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(every):
+			}
+			if err := o.Init(ctx); err != nil {
+				o.Logger.Warn("oidc discovery failed, retrying", zap.Error(err))
+				continue
+			}
+			o.Logger.Info("oidc discovery succeeded")
+			return
+		}
+	}()
+}
+
+func (o *OIDC) Ready() bool {
+	o.mu.RLock()
+	defer o.mu.RUnlock()
+	return o.ready
+}
+
+// The public auth hostname may be unresolvable from the device itself, so
+// server-to-Authelia calls are dialled over the platform's unix socket while
+// keeping the public issuer in the URL, which is what token validation checks.
+type authTransport struct {
+	host     string
+	socket   string
+	overSock http.RoundTripper
+	fallback http.RoundTripper
+}
+
+func newAuthTransport(issuerURL, socket string, fallback http.RoundTripper) http.RoundTripper {
+	host := ""
+	if u, err := url.Parse(issuerURL); err == nil {
+		host = u.Hostname()
+	}
+	if host == "" || socket == "" {
+		return fallback
+	}
+	return &authTransport{
+		host:   host,
+		socket: socket,
+		overSock: &http.Transport{
+			DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
+				return (&net.Dialer{}).DialContext(ctx, "unix", socket)
+			},
+		},
+		fallback: fallback,
+	}
+}
+
+func (t *authTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+	if r.URL.Hostname() != t.host {
+		return t.fallback.RoundTrip(r)
+	}
+	viaSocket := r.Clone(r.Context())
+	viaSocket.URL.Scheme = "http"
+	resp, err := t.overSock.RoundTrip(viaSocket)
+	if err == nil {
+		return resp, nil
+	}
+	return t.fallback.RoundTrip(r)
+}
+
 func (o *OIDC) Login(w http.ResponseWriter, r *http.Request) {
+	if !o.Ready() {
+		http.Error(w, "sign-in is unavailable: the device cannot reach its auth service yet",
+			http.StatusServiceUnavailable)
+		return
+	}
 	state, err := randBase64(16)
 	if err != nil {
 		http.Error(w, "state", http.StatusInternalServerError)
@@ -92,6 +184,11 @@ func (o *OIDC) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *OIDC) Callback(w http.ResponseWriter, r *http.Request) {
+	if !o.Ready() {
+		http.Error(w, "sign-in is unavailable: the device cannot reach its auth service yet",
+			http.StatusServiceUnavailable)
+		return
+	}
 	state, err := r.Cookie(stateCookie)
 	if err != nil {
 		http.Error(w, "state cookie missing", http.StatusBadRequest)
