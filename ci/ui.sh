@@ -21,7 +21,7 @@ trap 'cp -r ${ROOT}/web/test-results ${ARTIFACT}/ 2>/dev/null; cp -r ${ROOT}/web
 
 cd ${ROOT}/web
 ./e2e/wait-app.sh ${APP}.${DISTRO}.com
-npm ci --no-audit --no-fund
+${ROOT}/npm.sh ci --no-audit --no-fund
 
 PLAYWRIGHT_DOMAIN=${DISTRO}.com \
 PLAYWRIGHT_APP=${APP} \
