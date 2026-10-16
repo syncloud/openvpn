@@ -231,6 +231,33 @@ func TestAuthTransport_OverSocket(t *testing.T) {
 	assert.Contains(t, string(body), `"fwdhost":"auth.example.com"`)
 }
 
+func TestAuthTransport_KeepsTheExternalPort(t *testing.T) {
+	dir, err := os.MkdirTemp("", "a")
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
+	socket := path.Join(dir, "s")
+	listener, err := net.Listen("unix", socket)
+	require.NoError(t, err)
+	defer listener.Close()
+
+	go http.Serve(listener, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"host":"` + r.Host + `","fwdhost":"` + r.Header.Get("X-Forwarded-Host") + `"}`))
+	}))
+
+	rt := newAuthTransport("https://auth.example.com:10443", socket, http.DefaultTransport)
+	client := &http.Client{Transport: rt, Timeout: 10 * time.Second}
+
+	resp, err := client.Get("https://auth.example.com:10443/.well-known/openid-configuration")
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	assert.Contains(t, string(body), `"host":"auth.example.com:10443"`)
+	assert.Contains(t, string(body), `"fwdhost":"auth.example.com:10443"`)
+}
+
 func TestAuthTransport_NoSocketFallsBackToNetwork(t *testing.T) {
 	rt := newAuthTransport("https://auth.example.com", "", http.DefaultTransport)
 	assert.Equal(t, http.DefaultTransport, rt, "with no socket configured it must not wrap")

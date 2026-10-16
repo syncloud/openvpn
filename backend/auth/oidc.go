@@ -138,7 +138,7 @@ type authTransport struct {
 func newAuthTransport(issuerURL, socket string, fallback http.RoundTripper) http.RoundTripper {
 	host := ""
 	if u, err := url.Parse(issuerURL); err == nil {
-		host = u.Hostname()
+		host = u.Host
 	}
 	if host == "" || socket == "" {
 		return fallback
@@ -159,7 +159,7 @@ func newAuthTransport(issuerURL, socket string, fallback http.RoundTripper) http
 // normally adds. Without them it advertises http://localhost, which fails
 // discovery validation against the public issuer, so they are set explicitly.
 func (t *authTransport) RoundTrip(r *http.Request) (*http.Response, error) {
-	if r.URL.Hostname() != t.host {
+	if r.URL.Host != t.host {
 		return t.fallback.RoundTrip(r)
 	}
 	viaSocket := r.Clone(r.Context())
