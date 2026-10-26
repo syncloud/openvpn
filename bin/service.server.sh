@@ -12,10 +12,6 @@ fi
 
 ${DIR}/bin/firewall.sh
 
-while [ ! -f ${SERVER_CONF} ]
-do
-  echo "waiting for ${SERVER_CONF}"
-  sleep 1
-done
+${DIR}/backend/backend render
 
 exec ${DIR}/openvpn/sbin/openvpn.sh --config ${SERVER_CONF} --cd ${CONFIG_DIR}

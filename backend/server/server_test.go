@@ -36,6 +36,7 @@ func newService(t *testing.T) (*Service, *fakeRestarter) {
 		ServerAddress:    "device.syncloud.it",
 		PKI:              certs,
 		Restarter:        restarter,
+		LanResolver:      &LanResolver{ResolvConf: path.Join(dataDir, "resolv.conf")},
 	}, restarter
 }
 
@@ -55,6 +56,42 @@ func TestApply_RendersServerConf(t *testing.T) {
 	assert.Contains(t, conf, "data-ciphers "+DefaultDataCiphers)
 	assert.Contains(t, conf, "crl-verify "+service.PKI.CrlPath())
 	assert.Equal(t, []string{ServiceName}, restarter.restarted)
+}
+
+func TestApply_PushesLanResolver(t *testing.T) {
+	service, _ := newService(t)
+	resolvConf := "domain home.arpa\nsearch home.arpa\nnameserver 192.168.1.1\n"
+	require.NoError(t, os.WriteFile(service.LanResolver.ResolvConf, []byte(resolvConf), 0644))
+
+	require.NoError(t, service.Apply(DefaultSettings()))
+
+	content, err := os.ReadFile(service.ServerConfPath())
+	require.NoError(t, err)
+	conf := string(content)
+
+	assert.Contains(t, conf, "push \"dhcp-option DNS 192.168.1.1\"\n")
+	assert.Contains(t, conf, "push \"dhcp-option DOMAIN home.arpa\"\n")
+	assert.Contains(t, conf, "push \"dhcp-option DOMAIN-SEARCH home.arpa\"\n")
+	assert.Contains(t, conf, "push \"dns search-domains home.arpa\"\n")
+	assert.Contains(t, conf, "push \"dns server 0 address 192.168.1.1\"\n")
+	assert.NotContains(t, conf, "8.8.8.8")
+	assert.NotContains(t, conf, "DNS6")
+}
+
+func TestApply_PushesPublicResolverWithoutResolvConf(t *testing.T) {
+	service, _ := newService(t)
+
+	require.NoError(t, service.Apply(DefaultSettings()))
+
+	content, err := os.ReadFile(service.ServerConfPath())
+	require.NoError(t, err)
+	conf := string(content)
+
+	assert.Contains(t, conf, "push \"dhcp-option DNS 8.8.8.8\"\npush \"dhcp-option DNS 8.8.4.4\"\n")
+	assert.Contains(t, conf, "push \"dhcp-option DNS6 2001:4860:4860::8888\"\n")
+	assert.Contains(t, conf, "push \"dns server 0 address 8.8.8.8 8.8.4.4 2001:4860:4860::8888 2001:4860:4860::8844\"\n")
+	assert.NotContains(t, conf, "DOMAIN")
+	assert.NotContains(t, conf, "search-domains")
 }
 
 func TestApply_ServerConfIsOpenvpn27Clean(t *testing.T) {

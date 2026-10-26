@@ -29,6 +29,9 @@ type serverVariables struct {
 	IfconfigPoolPersist string
 	Keepalive           string
 	MaxClients          int
+	DNS                 []string
+	DNS6                []string
+	Domain              string
 }
 
 type clientVariables struct {
@@ -50,6 +53,7 @@ type Service struct {
 	ServerAddress    string
 	PKI              *pki.PKI
 	Restarter        ServiceRestarter
+	LanResolver      *LanResolver
 }
 
 func (s *Service) ServerConfPath() string {
@@ -84,6 +88,10 @@ func (s *Service) renderServerConf(settings Settings) error {
 	if s.PKI.CRLSupported() {
 		crl = s.PKI.CrlPath()
 	}
+	resolver, err := s.LanResolver.Resolve()
+	if err != nil {
+		return err
+	}
 	rendered, err := s.render("openvpn-server.conf.tpl", serverVariables{
 		ManagementSocket:    s.ManagementSocket,
 		Port:                settings.Port,
@@ -97,6 +105,9 @@ func (s *Service) renderServerConf(settings Settings) error {
 		IfconfigPoolPersist: path.Join(s.OpenvpnDir, "ipp.txt"),
 		Keepalive:           settings.Keepalive,
 		MaxClients:          settings.MaxClients,
+		DNS:                 resolver.DNS,
+		DNS6:                resolver.DNS6,
+		Domain:              resolver.Domain,
 	})
 	if err != nil {
 		return err
