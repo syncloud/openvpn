@@ -144,6 +144,9 @@ def test_pushes_lan_resolver(device):
         conf = device.run_ssh('cat {0}/openvpn/server.conf'.format(DATA_DIR))
         assert 'push "dhcp-option DNS 192.168.1.1"' in conf
         assert 'push "dhcp-option DOMAIN home.arpa"' in conf
+        assert 'push "dhcp-option DOMAIN-SEARCH home.arpa"' in conf
+        assert 'push "dns search-domains home.arpa"' in conf
+        assert 'push "dns server 0 address 192.168.1.1"' in conf
         assert '8.8.8.8' not in conf
         assert '2001:4860:4860::8888' not in conf
     finally:

@@ -71,6 +71,9 @@ func TestApply_PushesLanResolver(t *testing.T) {
 
 	assert.Contains(t, conf, "push \"dhcp-option DNS 192.168.1.1\"\n")
 	assert.Contains(t, conf, "push \"dhcp-option DOMAIN home.arpa\"\n")
+	assert.Contains(t, conf, "push \"dhcp-option DOMAIN-SEARCH home.arpa\"\n")
+	assert.Contains(t, conf, "push \"dns search-domains home.arpa\"\n")
+	assert.Contains(t, conf, "push \"dns server 0 address 192.168.1.1\"\n")
 	assert.NotContains(t, conf, "8.8.8.8")
 	assert.NotContains(t, conf, "DNS6")
 }
@@ -86,7 +89,9 @@ func TestApply_PushesPublicResolverWithoutResolvConf(t *testing.T) {
 
 	assert.Contains(t, conf, "push \"dhcp-option DNS 8.8.8.8\"\npush \"dhcp-option DNS 8.8.4.4\"\n")
 	assert.Contains(t, conf, "push \"dhcp-option DNS6 2001:4860:4860::8888\"\n")
+	assert.Contains(t, conf, "push \"dns server 0 address 8.8.8.8 8.8.4.4 2001:4860:4860::8888 2001:4860:4860::8844\"\n")
 	assert.NotContains(t, conf, "DOMAIN")
+	assert.NotContains(t, conf, "search-domains")
 }
 
 func TestApply_ServerConfIsOpenvpn27Clean(t *testing.T) {
