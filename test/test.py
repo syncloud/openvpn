@@ -151,6 +151,23 @@ def test_pushes_lan_resolver(device):
         device.run_ssh('snap restart openvpn.backend')
 
 
+def test_server_starts_with_fresh_config(device):
+    device.run_ssh('cp /etc/resolv.conf /tmp/resolv.conf.ci')
+    device.run_ssh('snap stop openvpn.backend')
+    try:
+        device.run_ssh("printf 'domain home.arpa\\nnameserver 192.168.1.1\\n' > /etc/resolv.conf")
+        device.run_ssh('touch /tmp/resolv.conf.ci')
+        device.run_ssh('snap restart openvpn.server')
+        device.run_ssh('test {0}/openvpn/server.conf -nt /tmp/resolv.conf.ci'.format(DATA_DIR),
+                       retries=7, throw=False)
+        conf = device.run_ssh('cat {0}/openvpn/server.conf'.format(DATA_DIR))
+        assert 'push "dhcp-option DNS 192.168.1.1"' in conf
+    finally:
+        device.run_ssh('cat /tmp/resolv.conf.ci > /etc/resolv.conf')
+        device.run_ssh('snap start openvpn.backend')
+        device.run_ssh('snap restart openvpn.server')
+
+
 def test_upgrade_same_version(app_archive_path, device_host, device_password):
     local_install(device_host, device_password, app_archive_path)
 
