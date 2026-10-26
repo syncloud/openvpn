@@ -12,6 +12,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"syscall"
 	"time"
 )
 
@@ -67,6 +68,14 @@ func (p *PKI) Init() error {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			return err
 		}
+	}
+	lock, err := os.OpenFile(path.Join(p.Dir, ".init.lock"), os.O_CREATE|os.O_RDWR, filePermSecret)
+	if err != nil {
+		return err
+	}
+	defer lock.Close()
+	if err := syscall.Flock(int(lock.Fd()), syscall.LOCK_EX); err != nil {
+		return fmt.Errorf("lock %s: %w", lock.Name(), err)
 	}
 	if err := p.ensureCA(); err != nil {
 		return fmt.Errorf("ensure ca: %w", err)

@@ -92,6 +92,9 @@ func run(log *zap.Logger) error {
 		return fmt.Errorf("load %s: %w", configFile, err)
 	}
 	service := newService(cfg)
+	if err := service.PKI.Init(); err != nil {
+		return fmt.Errorf("init pki: %w", err)
+	}
 
 	oidc := &auth.OIDC{
 		IssuerURL:    cfg.OIDCAuthBaseURL,

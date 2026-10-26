@@ -44,6 +44,30 @@ func TestInit_Idempotent(t *testing.T) {
 	assert.Equal(t, before, after)
 }
 
+func TestInit_ConcurrentCallersShareOneCA(t *testing.T) {
+	dir := path.Join(t.TempDir(), "pki")
+	errs := make(chan error, 4)
+	for range 4 {
+		go func() { errs <- (&PKI{Dir: dir}).Init() }()
+	}
+	for range 4 {
+		require.NoError(t, <-errs)
+	}
+
+	p := &PKI{Dir: dir}
+	cert, err := p.readCert(p.CertPath(ServerName))
+	require.NoError(t, err)
+	caCert, err := p.readCert(p.CaCertPath())
+	require.NoError(t, err)
+	pool := x509.NewCertPool()
+	pool.AddCert(caCert)
+	_, err = cert.Verify(x509.VerifyOptions{
+		Roots:     pool,
+		KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+	})
+	assert.NoError(t, err)
+}
+
 func TestIssueClient_ChainVerifies(t *testing.T) {
 	p := newPKI(t)
 	require.NoError(t, p.IssueClient("laptop"))
