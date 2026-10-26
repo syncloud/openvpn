@@ -129,7 +129,7 @@ def test_prefix_delegation(device):
 
 
 def test_ipv6_prefix_survives_rerender(device):
-    device.run_ssh('snap restart openvpn.backend')
+    device.run_ssh('snap restart openvpn.server')
     device.run_ssh("grep 'server-ipv6 111:222:333::/64' {0}/openvpn/server.conf".format(DATA_DIR),
                    retries=30)
 
@@ -139,7 +139,7 @@ def test_pushes_lan_resolver(device):
     try:
         device.run_ssh("printf 'domain home.arpa\\nsearch home.arpa\\nnameserver 192.168.1.1\\n' > /etc/resolv.conf")
         device.run_ssh('touch /tmp/resolv.conf.ci')
-        device.run_ssh('snap restart openvpn.backend')
+        device.run_ssh('snap restart openvpn.server')
         device.run_ssh('test {0}/openvpn/server.conf -nt /tmp/resolv.conf.ci'.format(DATA_DIR), retries=7)
         conf = device.run_ssh('cat {0}/openvpn/server.conf'.format(DATA_DIR))
         assert 'push "dhcp-option DNS 192.168.1.1"' in conf
@@ -148,7 +148,7 @@ def test_pushes_lan_resolver(device):
         assert '2001:4860:4860::8888' not in conf
     finally:
         device.run_ssh('cat /tmp/resolv.conf.ci > /etc/resolv.conf')
-        device.run_ssh('snap restart openvpn.backend')
+        device.run_ssh('snap restart openvpn.server')
 
 
 def test_server_starts_with_fresh_config(device):

@@ -36,37 +36,45 @@ func main() {
 			return run(logger())
 		},
 	}
+	cmd.AddCommand(&cobra.Command{
+		Use:          "render",
+		Short:        "Render server.conf before openvpn starts",
+		SilenceUsage: true,
+		RunE: func(_ *cobra.Command, _ []string) error {
+			return render(logger())
+		},
+	})
 	if err := cmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
-func run(log *zap.Logger) error {
-	cfg, err := config.Load(configFile)
-	if err != nil {
-		return fmt.Errorf("load %s: %w", configFile, err)
-	}
-
-	certs := &pki.PKI{Dir: cfg.PkiDir}
-	if err := certs.Init(); err != nil {
-		return fmt.Errorf("init pki: %w", err)
-	}
-
-	settings, err := server.LoadSettings(cfg.DataDir)
-	if err != nil {
-		return fmt.Errorf("load settings: %w", err)
-	}
-
-	service := &server.Service{
+func newService(cfg *config.Config) *server.Service {
+	return &server.Service{
 		DataDir:          cfg.DataDir,
 		OpenvpnDir:       cfg.OpenvpnDir,
 		TemplatesDir:     path.Join(cfg.AppDir, "templates"),
 		ManagementSocket: cfg.ManagementSocket,
 		ServerAddress:    cfg.ServerAddress,
-		PKI:              certs,
+		PKI:              &pki.PKI{Dir: cfg.PkiDir},
 		Restarter:        platform.New(),
 		LanResolver:      &server.LanResolver{ResolvConf: "/etc/resolv.conf"},
+	}
+}
+
+func render(log *zap.Logger) error {
+	cfg, err := config.Load(configFile)
+	if err != nil {
+		return fmt.Errorf("load %s: %w", configFile, err)
+	}
+	service := newService(cfg)
+	if err := service.PKI.Init(); err != nil {
+		return fmt.Errorf("init pki: %w", err)
+	}
+	settings, err := server.LoadSettings(cfg.DataDir)
+	if err != nil {
+		return fmt.Errorf("load settings: %w", err)
 	}
 	if err := service.Render(settings); err != nil {
 		return fmt.Errorf("render server config: %w", err)
@@ -75,6 +83,15 @@ func run(log *zap.Logger) error {
 		zap.String("file", service.ServerConfPath()),
 		zap.Int("port", settings.Port),
 		zap.String("proto", settings.Proto))
+	return nil
+}
+
+func run(log *zap.Logger) error {
+	cfg, err := config.Load(configFile)
+	if err != nil {
+		return fmt.Errorf("load %s: %w", configFile, err)
+	}
+	service := newService(cfg)
 
 	oidc := &auth.OIDC{
 		IssuerURL:    cfg.OIDCAuthBaseURL,
@@ -93,7 +110,7 @@ func run(log *zap.Logger) error {
 	}
 
 	handlers := &api.Api{
-		PKI:     certs,
+		PKI:     service.PKI,
 		Server:  service,
 		MI:      &mi.Client{Socket: cfg.ManagementSocket},
 		DataDir: cfg.DataDir,
