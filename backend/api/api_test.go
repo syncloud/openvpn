@@ -30,6 +30,7 @@ func newApi(t *testing.T) (*Api, *http.ServeMux) {
 		ManagementSocket: path.Join(dataDir, "openvpn.socket"),
 		ServerAddress:    "device.syncloud.it",
 		PKI:              certs,
+		LanResolver:      &server.LanResolver{ResolvConf: path.Join(dataDir, "resolv.conf")},
 	}
 
 	api := &Api{

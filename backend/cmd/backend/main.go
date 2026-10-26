@@ -66,6 +66,7 @@ func run(log *zap.Logger) error {
 		ServerAddress:    cfg.ServerAddress,
 		PKI:              certs,
 		Restarter:        platform.New(),
+		LanResolver:      &server.LanResolver{ResolvConf: "/etc/resolv.conf"},
 	}
 	if err := service.Render(settings); err != nil {
 		return fmt.Errorf("render server config: %w", err)

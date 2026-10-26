@@ -21,11 +21,10 @@ compress migrate
 
 ifconfig-pool-persist {{ .IfconfigPoolPersist }}
 
-push "dhcp-option DNS 8.8.8.8"
-push "dhcp-option DNS 8.8.4.4"
-push "dhcp-option DNS6 2001:4860:4860::8888"
-push "dhcp-option DNS6 2001:4860:4860::8844"
-push "route-ipv6 ::/0"
+{{ range .DNS }}push "dhcp-option DNS {{ . }}"
+{{ end }}{{ range .DNS6 }}push "dhcp-option DNS6 {{ . }}"
+{{ end }}{{ if .Domain }}push "dhcp-option DOMAIN {{ .Domain }}"
+{{ end }}push "route-ipv6 ::/0"
 push "redirect-gateway def1 bypass-dhcp"
 push "redirect-gateway ipv6 def1 bypass-dhcp"
 
